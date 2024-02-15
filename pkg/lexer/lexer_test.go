@@ -104,3 +104,14 @@ let c = fn(x,y){
 		}
 	}
 }
+
+func TestTokenize(t *testing.T) {
+	test := `
+let a = 100`
+	l := NewLexer(test)
+
+	ts := l.Tokenize()
+	for _, t := range ts {
+		fmt.Printf("\n%v", t)
+	}
+}

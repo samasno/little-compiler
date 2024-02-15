@@ -22,6 +22,20 @@ func NewLexer(source string) *Lexer {
 	}
 }
 
+func (l *Lexer) Tokenize() []tokens.Token {
+	ts := []tokens.Token{}
+
+	for {
+		tk := l.NextToken()
+		ts = append(ts, tk)
+		if tk.Type == tokens.EOF {
+			break
+		}
+	}
+
+	return ts
+}
+
 func (l *Lexer) NextToken() tokens.Token {
 	// skip whitespace function here
 	l.position = l.readPosition
@@ -59,7 +73,7 @@ loop:
 		case isDelimiter(next),
 			isNewline(next),
 			isOperator(next),
-			l.readPosition == l.sourceLength-1:
+			l.readPosition == l.sourceLength:
 			break loop
 		}
 	}
@@ -88,7 +102,8 @@ func isDelimiter(c string) bool {
 		tokens.RBRACKET,
 		tokens.SPACE,
 		tokens.NEWLINE,
-		tokens.TAB:
+		tokens.TAB,
+		tokens.EOF:
 		return true
 	default:
 		return false
