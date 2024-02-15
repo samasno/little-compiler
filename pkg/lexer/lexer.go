@@ -23,6 +23,7 @@ func NewLexer(source string) *Lexer {
 }
 
 func (l *Lexer) NextToken() tokens.Token {
+	// skip whitespace function here
 	l.position = l.readPosition
 	var t tokens.Token
 
