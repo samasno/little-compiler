@@ -38,6 +38,7 @@ func (l *Lexer) Tokenize() []tokens.Token {
 
 func (l *Lexer) NextToken() tokens.Token {
 	// skip whitespace function here
+	l.eatWhiteSpace()
 	l.position = l.readPosition
 	var t tokens.Token
 
@@ -58,6 +59,21 @@ func (l *Lexer) NextToken() tokens.Token {
 	}
 }
 
+func (l *Lexer) eatWhiteSpace() {
+	for {
+		var next string
+		if l.readPosition < l.sourceLength {
+			next = string(l.source[l.readPosition])
+		}
+
+		if isWhiteSpace(next) && l.readPosition < l.sourceLength {
+			l.readPosition++
+		} else {
+			break
+		}
+	}
+}
+
 func (l *Lexer) readSequence() tokens.Token {
 
 loop:
@@ -71,7 +87,7 @@ loop:
 
 		switch {
 		case isDelimiter(next),
-			isNewline(next),
+			isWhiteSpace(next),
 			isOperator(next),
 			l.readPosition == l.sourceLength:
 			break loop
@@ -100,14 +116,22 @@ func isDelimiter(c string) bool {
 		tokens.RPAREN,
 		tokens.LBRACKET,
 		tokens.RBRACKET,
-		tokens.SPACE,
-		tokens.NEWLINE,
-		tokens.TAB,
 		tokens.EOF:
 		return true
 	default:
 		return false
 
+	}
+}
+
+func isWhiteSpace(s string) bool {
+	switch s {
+	case tokens.SPACE,
+		tokens.TAB,
+		tokens.NEWLINE:
+		return true
+	default:
+		return false
 	}
 }
 

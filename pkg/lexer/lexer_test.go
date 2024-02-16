@@ -13,7 +13,6 @@ test
 `
 	expected := []tokens.Token{
 		{tokens.ASSIGN, tokens.ASSIGN},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.PLUS, tokens.PLUS},
 		{tokens.LPAREN, tokens.LPAREN},
 		{tokens.RPAREN, tokens.RPAREN},
@@ -22,9 +21,7 @@ test
 		{tokens.COLON, tokens.COLON},
 		{tokens.SEMICOLON, tokens.SEMICOLON},
 		{tokens.COMMA, tokens.COMMA},
-		{tokens.NEWLINE, tokens.NEWLINE},
 		{tokens.IDENTIFIER, "test"},
-		{tokens.NEWLINE, tokens.NEWLINE},
 		{tokens.EOF, tokens.EOF},
 	}
 
@@ -49,27 +46,17 @@ let c = fn(x,y){
 }
 `
 	ex := []tokens.Token{
-		{tokens.NEWLINE, tokens.NEWLINE},
 		{tokens.LET, tokens.LET},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.IDENTIFIER, `a`},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.ASSIGN, tokens.ASSIGN},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.INTEGER, "100"},
-		{tokens.NEWLINE, tokens.NEWLINE},
 		{tokens.LET, tokens.LET},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.IDENTIFIER, `b`},
 		{tokens.ASSIGN, tokens.ASSIGN},
 		{tokens.INTEGER, "3"},
-		{tokens.NEWLINE, tokens.NEWLINE},
 		{tokens.LET, tokens.LET},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.IDENTIFIER, `c`},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.ASSIGN, tokens.ASSIGN},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.FUNCTION, tokens.FUNCTION},
 		{tokens.LPAREN, tokens.LPAREN},
 		{tokens.IDENTIFIER, `x`},
@@ -77,19 +64,12 @@ let c = fn(x,y){
 		{tokens.IDENTIFIER, `y`},
 		{tokens.RPAREN, tokens.RPAREN},
 		{tokens.LBRACE, tokens.LBRACE},
-		{tokens.NEWLINE, tokens.NEWLINE},
-		{tokens.TAB, tokens.TAB},
 		{tokens.RETURN, tokens.RETURN},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.IDENTIFIER, `x`},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.MULTIPLY, tokens.MULTIPLY},
-		{tokens.SPACE, tokens.SPACE},
 		{tokens.IDENTIFIER, `y`},
 		{tokens.SEMICOLON, tokens.SEMICOLON},
-		{tokens.NEWLINE, tokens.NEWLINE},
 		{tokens.RBRACE, tokens.RBRACE},
-		{tokens.NEWLINE, tokens.NEWLINE},
 		{tokens.EOF, tokens.EOF},
 	}
 
