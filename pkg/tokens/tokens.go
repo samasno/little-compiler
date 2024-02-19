@@ -44,3 +44,15 @@ const (
 	LET      = "let"
 	RETURN   = "return"
 )
+
+func IsMathOperator(t Token) bool {
+	switch t.Type {
+	case PLUS,
+		MINUS,
+		MULTIPLY,
+		DIVIDE:
+		return true
+	default:
+		return false
+	}
+}
