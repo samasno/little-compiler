@@ -31,10 +31,15 @@ const (
 	DIVIDE   = "/"
 
 	// COMPARATORS
-	EQUALTO = "=="
-	LTE     = "<="
-	GTE     = ">="
-	NOT     = "!"
+	EQUALTO  = "=="
+	LT       = "<"
+	GT       = ">"
+	LTE      = "<="
+	GTE      = ">="
+	NEQUALTO = "!="
+	NOT      = "!"
+	INC      = "++"
+	DEC      = "--"
 
 	// KEYWORDS
 	STRING   = "str"
@@ -43,6 +48,10 @@ const (
 	FUNCTION = "fn"
 	LET      = "let"
 	RETURN   = "return"
+	TRUE     = "true"
+	FALSE    = "false"
+	IF       = "if"
+	ELSE     = "else"
 )
 
 func IsMathOperator(t Token) bool {
