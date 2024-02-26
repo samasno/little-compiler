@@ -37,7 +37,6 @@ func (l *Lexer) Tokenize() []tokens.Token {
 }
 
 func (l *Lexer) NextToken() tokens.Token {
-	// skip whitespace function here
 	l.eatWhiteSpace()
 	l.position = l.readPosition
 	var t tokens.Token
@@ -50,6 +49,10 @@ func (l *Lexer) NextToken() tokens.Token {
 	next := string(l.source[l.position])
 
 	switch {
+	case l.isComparator(next):
+		t := l.readComparator()
+		l.readPosition++
+		return t
 	case isDelimiter(next),
 		isOperator(next):
 		l.readPosition++
@@ -96,6 +99,8 @@ loop:
 
 	v := l.source[l.position:l.readPosition]
 	switch {
+	case isBool(v):
+		return tokens.Token{v, v}
 	case isInteger(v):
 		return tokens.Token{tokens.INTEGER, v}
 	case isKeyword(v):
@@ -103,6 +108,31 @@ loop:
 	default:
 		return tokens.Token{tokens.IDENTIFIER, v}
 	}
+}
+
+func (l *Lexer) isComparator(next string) bool {
+	if l.position < l.sourceLength-1 {
+		next += string(l.source[l.position+1])
+		switch next {
+		case tokens.GTE,
+			tokens.LTE,
+			tokens.EQUALTO,
+			tokens.NEQUALTO,
+			tokens.INC,
+			tokens.DEC:
+			return true
+		}
+
+	}
+
+	return false
+}
+
+func (l *Lexer) readComparator() tokens.Token {
+	c := string(l.source[l.readPosition])
+	l.readPosition++
+	c += string(l.source[l.readPosition])
+	return tokens.Token{c, c}
 }
 
 func isDelimiter(c string) bool {
@@ -120,7 +150,6 @@ func isDelimiter(c string) bool {
 		return true
 	default:
 		return false
-
 	}
 }
 
@@ -149,7 +178,10 @@ func isOperator(s string) bool {
 		tokens.PLUS,
 		tokens.MINUS,
 		tokens.MULTIPLY,
-		tokens.DIVIDE:
+		tokens.DIVIDE,
+		tokens.LT,
+		tokens.GT,
+		tokens.NOT:
 		return true
 	default:
 		return false
@@ -161,12 +193,23 @@ func isKeyword(s string) bool {
 	case tokens.LET,
 		tokens.INT,
 		tokens.FUNCTION,
-		tokens.RETURN:
+		tokens.RETURN,
+    tokens.IF,
+    tokens.ELSE:
 		return true
 	default:
 		return false
 	}
 
+}
+
+func isBool(s string) bool {
+	switch s {
+	case tokens.TRUE,
+		tokens.FALSE:
+		return true
+	}
+	return false
 }
 
 func isNewline(s string) bool {
