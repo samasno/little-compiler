@@ -127,8 +127,10 @@ func (fl *FnLiteral) String() string {
 	}
 	out.WriteString(fl.Token.Literal)
 	out.WriteString(fmt.Sprintf("(%s) ", strings.Join(params, ",")))
-	out.WriteString(fl.Body.String())
-	return out.String()
+  if fl.Body != nil {
+    out.WriteString(fl.Body.String())
+  }
+		return out.String()
 }
 
 func (rs *ReturnStatement) String() string {
