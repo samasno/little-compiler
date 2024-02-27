@@ -35,6 +35,10 @@ func New(l *lexer.Lexer) *Parser {
 		tokens.IF,
 	)
 
+  p.registerPrefix(p.parseFnLiteral,
+    tokens.FUNCTION,
+  )
+
 	p.registerInfix(p.parseInfixExpression,
 		tokens.ASSIGN,
 		tokens.PLUS,
@@ -151,6 +155,8 @@ func (p *Parser) parseLet() Statement {
 		stmt.Value = p.parseInteger()
 	case p.currentIs(tokens.TRUE), p.currentIs(tokens.FALSE):
 		stmt.Value = p.parseBoolean()
+	case p.currentIs(tokens.FUNCTION):
+		stmt.Value = p.parseFnLiteral()
 	default:
 		log.Fatalf("unexpected token %s\n", p.currentToken.Type)
 	}
@@ -362,27 +368,41 @@ func (p *Parser) parseIfExpression() Expression {
 	return exp
 }
 
-func (p *Parser) parseFnLiteral() *FnLiteral {
-	// expect LPAREN
-	fn := &FnLiteral{Token: p.currentToken, Params: []*Identifier{}}
+func (p *Parser) parseFnLiteral() Expression {
+	fn := &FnLiteral{Token: p.currentToken}
+  
+  p.expectPeek(tokens.LPAREN)
 
-	p.expectPeek(tokens.LPAREN)
-
-	for !p.peekIs(tokens.RPAREN) && !p.peekIs(tokens.EOF) {
-		p.expectPeek(tokens.IDENTIFIER)
-		fn.Params = append(fn.Params,&Identifier{})
-	}
-
-	p.nextToken()
-
-	if p.peekIs(tokens.LBRACE) {
-		p.nextToken()
-
-		fn.Body = p.parseBlockStatement()
-	}
-	// add prefix precedence of call to fn
-	// add fn keyword to pareexpression
+  fn.Params = p.parseFnParams()
+ 
+  if p.peekIs(tokens.LBRACE) {
+    p.expectPeek(tokens.LBRACE)
+  
+    fn.Body = p.parseBlockStatement()
+  }
+  
 	return fn
+}
+
+func (p *Parser) parseFnParams() []*Identifier {
+  params := []*Identifier{}
+  
+  for !p.peekIs(tokens.RPAREN) && !p.peekIs(tokens.EOF) {
+    p.nextToken()
+
+    if !p.currentIs(tokens.COMMA) && !p.currentIs(tokens.IDENTIFIER) {
+      log.Fatalf("expected identifier or comma got %s\n", p.currentToken.Type)
+    }
+    
+    if p.currentIs(tokens.IDENTIFIER) {
+      params = append(params, &Identifier{Token: p.currentToken, Value: p.currentToken.Literal})
+    }
+
+  }
+   
+  p.nextToken()
+
+  return params
 }
 
 func (p *Parser) parseBlockStatement() *BlockStatement {
@@ -400,7 +420,7 @@ func (p *Parser) parseBlockStatement() *BlockStatement {
 		}
 
 		p.nextToken()
-	}
+  }
 
 	return bs
 }
