@@ -452,9 +452,8 @@ func TestParseFnLiteral(t *testing.T) {
 	}
 
   if len(fn.Params) != 2 {
-    t.Fatalf("expected %d params got %d\n", 2, len(fn.Params))
+    t.Fatalf("expected %d params got %d\n",2, len(fn.Params))
   }
-
 	println(fn.String())
 }
 
