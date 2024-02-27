@@ -430,24 +430,32 @@ func TestIfExpression(t *testing.T) {
 }
 
 func TestParseFnLiteral(t *testing.T) {
-  input :=  "let a = fn(x,y) { return x + y; }" 
-  
-  l := lexer.NewLexer(input)
-  p := New(l)
-  program := p.ParseProgram()
+	input := "let a = fn(x,y) { return x + y; }"
 
-  if len(program.Statements) != 1 {
-    t.Fatalf("expected 1 statement got %d\n", len(program.Statements))
+	l := lexer.NewLexer(input)
+	p := New(l)
+	program := p.ParseProgram()
+  println(program.String())
+	if len(program.Statements) != 1 {
+		t.Fatalf("expected 1 statement got %d\n", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*LetStatement)
+
+	if !ok {
+		t.Fatalf("expected let statement got %s\n", reflect.TypeOf(program.Statements[0]))
+	}
+
+	fn, ok := stmt.Value.(*FnLiteral)
+	if !ok {
+		t.Fatalf("expected fn literal got %s\n", reflect.TypeOf(stmt.Value))
+	}
+
+  if len(fn.Params) != 2 {
+    t.Fatalf("expected %d params got %d\n", 2, len(fn.Params))
   }
 
-  stmt, ok := program.Statements[0].(*ExpressionStatement)
-
-  if !ok {
-    t.Fatalf("expected exp statement got %s\n", reflect.TypeOf(program.Statements[0]))
-  }
-
-  println(stmt)
-
+	println(fn.String())
 }
 
 func checkParserErrors(t *testing.T, p *Parser) {
