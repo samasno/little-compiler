@@ -457,6 +457,37 @@ func TestParseFnLiteral(t *testing.T) {
 	println(fn.String())
 }
 
+func TestParseCallExpression(t *testing.T) {
+  input := "add(3,5*5+2,9)"
+
+  l := lexer.NewLexer(input)
+  p := New(l)
+  program := p.ParseProgram()
+
+  if len(program.Statements) != 1 {
+    t.Errorf("expected 1 statement got %d\n", len(program.Statements))
+  }
+
+  // statement should be  exp statement 
+  stmt, ok := program.Statements[0].(*ExpressionStatement)
+  if !ok {
+    t.Fatalf("exprected call exp got %s\n", reflect.TypeOf(program.Statements[0]))
+  }
+
+  // statement exp sould be call exp 
+  ce, ok := stmt.Expression.(*CallExpression)
+  if !ok {
+    t.Errorf("expected call exp got %s\n", reflect.TypeOf(stmt))
+  }
+  // call fn should be add 
+
+  fn, ok := ce.Function.(*Identifier)
+  if !ok {
+    t.Errorf("expected fn to be identifier got %s\n", reflect.TypeOf(ce.Function))
+  }
+  // call 
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	for _, err := range p.errors {
 		t.Errorf(err)
