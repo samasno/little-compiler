@@ -60,6 +60,12 @@ type IfExpression struct {
 	Alternative *BlockStatement
 }
 
+type CallExpression struct {
+  Token tokens.Token
+  Function Expression
+  Arguments []Expression
+}
+
 type BlockStatement struct {
 	Token      tokens.Token
 	Statements []Statement
@@ -172,6 +178,20 @@ func (bs *BlockStatement) String() string {
 	return out.String()
 }
 
+func (ce *CallExpression) String() string {
+  var out bytes.Buffer
+  args := []string{}
+
+  for _, a := range ce.Arguments {
+    args = append(args, a.String())
+  }
+
+  str := fmt.Sprintf("%s(%s)", ce.Function.String(), strings.Join(args, ","))
+  out.WriteString(str)
+
+  return out.String()
+}
+
 func (is *IfExpression) String() string {
 	var out bytes.Buffer
 	out.WriteString("(")
@@ -215,6 +235,8 @@ func (ix *InfixExpression) String() string {
 	return out.String()
 }
 
+func (ce *CallExpression) expressionNode() {}
+func (ce *CallExpression) TokenLiteral() string     { return ce.Token.Literal }
 func (fl *FnLiteral) expressionNode()               {}
 func (fl *FnLiteral) TokenLiteral() string          { return fl.Token.Literal }
 func (bs *BlockStatement) statementNode()           {}
