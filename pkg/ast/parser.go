@@ -1,10 +1,7 @@
 package ast
 
 import (
-	"fmt"
 	"log"
-	"reflect"
-	"runtime"
 	"strconv"
 
 	"github.com/samasno/little-compiler/pkg/lexer"
@@ -91,7 +88,7 @@ func New(l *lexer.Lexer) *Parser {
 	)
 
 	p.registerInfixPrecedence(CALL,
-		tokens.FUNCTION,
+		tokens.LPAREN,
 	)
 
 	p.nextToken()
@@ -198,8 +195,6 @@ func (p *Parser) parseExpressionStatement() Statement {
 
 func (p *Parser) parseExpression(precedence int) Expression {
 	prefix, ok := p.prefixParseFn[p.currentToken.Type]
-  fmt.Printf("%v\n", p.currentToken)
-  fmt.Printf("%v\n", runtime.FuncForPC(reflect.ValueOf(prefix).Pointer()).Name())
 	if !ok {
 		log.Fatalf("no parsing function found for %s\n", p.currentToken.Type)
 	}
@@ -292,7 +287,14 @@ func (p *Parser) registerPrefixPrecedence(precedence int, tokenTypes ...string) 
 }
 
 func (p *Parser) parseIdentifier() Expression {
-	return &Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+  ident :=  &Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+
+  //if p.peekIs(tokens.LPAREN) {
+    //p.nextToken()
+    //return p.parseCallExpression(ident)
+  //}
+
+  return ident
 }
 
 func (p *Parser) parsePrefixExpression() Expression {
@@ -387,6 +389,11 @@ func (p *Parser) parseFnLiteral() Expression {
     p.expectPeek(tokens.LBRACE)
     fn.Body = p.parseBlockStatement()
   }
+
+  if p.peekIs(tokens.LPAREN) {
+    p.nextToken()
+    p.parseCallExpression(fn)
+  }
   
 	return fn
 }
@@ -433,7 +440,6 @@ func (p *Parser) parseBlockStatement() *BlockStatement {
 }
 
 func (p *Parser) parseCallExpression(fn Expression) Expression {
-  println("parsing call")
   ce := &CallExpression{Token:p.currentToken, Function: fn, Arguments: []Expression{}}
 
   ce.Arguments = p.parseCallArguments()
@@ -443,24 +449,18 @@ func (p *Parser) parseCallExpression(fn Expression) Expression {
 
 func (p *Parser) parseCallArguments() []Expression {
   args := []Expression{}
-  println("parse args")
   if p.peekIs(tokens.RPAREN) {
-    println("exiting got rparen")
     p.nextToken()
-    return args
   }
-  println("moving to next expression")
   p.nextToken()
   args = append(args, p.parseExpression(LOWEST))
 
   for p.peekIs(tokens.COMMA) {
-    println("peeks is comma, forward 2")
     p.nextToken()
     p.nextToken()
 
     args = append(args, p.parseExpression(LOWEST))
   }     
-  println("looking for rparen")
   p.expectPeek(tokens.RPAREN)
 
   return args
