@@ -485,7 +485,16 @@ func TestParseCallExpression(t *testing.T) {
   if !ok {
     t.Errorf("expected fn to be identifier got %s\n", reflect.TypeOf(ce.Function))
   }
-  // call 
+
+  if fn.Value != "add" {
+    t.Errorf("expected fn value to be add got %s\n", fn.Value)
+  }  
+  
+  if len(ce.Arguments) != 3 {
+    t.Errorf("expected 3 args got %d\n", len(ce.Arguments))
+  }
+
+  println(ce.String())  // call 
 }
 
 func checkParserErrors(t *testing.T, p *Parser) {
