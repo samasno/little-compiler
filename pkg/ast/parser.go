@@ -287,14 +287,7 @@ func (p *Parser) registerPrefixPrecedence(precedence int, tokenTypes ...string) 
 }
 
 func (p *Parser) parseIdentifier() Expression {
-  ident :=  &Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
-
-  //if p.peekIs(tokens.LPAREN) {
-    //p.nextToken()
-    //return p.parseCallExpression(ident)
-  //}
-
-  return ident
+  return &Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
 func (p *Parser) parsePrefixExpression() Expression {
