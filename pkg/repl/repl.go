@@ -7,9 +7,14 @@ import (
 	"strings"
 
 	"github.com/samasno/little-compiler/pkg/lexer"
+	"github.com/samasno/little-compiler/pkg/ast"
+
 )
 
+// need to add error handling to lexer and parser
+
 func Run() {
+  println("Starting repl for little-compiler")
 	scanner := bufio.NewScanner(os.Stdin)
 outer:
 	for {
@@ -24,10 +29,9 @@ outer:
 				break outer
 			default:
 				l := lexer.NewLexer(text)
-				ts := l.Tokenize()
-				for _, t := range ts {
-					fmt.Printf("%v\n", t)
-				}
+        p := ast.New(l)
+        prg := p.ParseProgram()
+        println(prg.String())
 				break inner
 			}
 
