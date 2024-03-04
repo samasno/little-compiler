@@ -2,13 +2,13 @@ package repl
 
 import (
 	"bufio"
-	"fmt"
+	"io"
 	"os"
 	"strings"
 
-	"github.com/samasno/little-compiler/pkg/lexer"
 	"github.com/samasno/little-compiler/pkg/ast"
-
+	"github.com/samasno/little-compiler/pkg/eval"
+	"github.com/samasno/little-compiler/pkg/lexer"
 )
 
 // need to add error handling to lexer and parser
@@ -16,9 +16,9 @@ import (
 func Run() {
   println("Starting repl for little-compiler")
 	scanner := bufio.NewScanner(os.Stdin)
+  io.WriteString(os.Stdout, ">>")
 outer:
 	for {
-		prompt()
 	inner:
 		for scanner.Scan() {
 			text := scanner.Text()
@@ -31,15 +31,16 @@ outer:
 				l := lexer.NewLexer(text)
         p := ast.New(l)
         prg := p.ParseProgram()
-        println(prg.String())
+        o := eval.Eval(prg)
+        io.WriteString(os.Stdout, o.Inspect())
+        io.WriteString(os.Stdout, "\n>>")
 				break inner
 			}
 
 		}
 	}
+
 	println("exiting repl")
 }
 
-func prompt() {
-	fmt.Printf(">>")
-}
+
