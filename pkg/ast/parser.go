@@ -365,7 +365,6 @@ func (p *Parser) parseIfExpression() Expression {
 		p.nextToken()
 
 		exp.Alternative = p.parseBlockStatement()
-		println(exp.Alternative.String())
 	}
 
 	return exp
