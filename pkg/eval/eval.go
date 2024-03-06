@@ -13,8 +13,11 @@ func Eval(node ast.Node) object.Object {
 	case *ast.LetStatement:
 		println("got let statement")
 
+	case *ast.Identifier:
+		println("got identifier")
+
 	case *ast.ReturnStatement:
-		println("got return statement")
+		return &object.Return{Value: Eval(node.Value)}
 
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
@@ -29,7 +32,7 @@ func Eval(node ast.Node) object.Object {
 		println("fnlit")
 
 	case *ast.BlockStatement:
-		println("block stmt")
+		return evalStatements(node.Statements)
 
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
@@ -39,15 +42,22 @@ func Eval(node ast.Node) object.Object {
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
 		return evalPrefix(node.Operator, right)
+
+	case *ast.IfExpression:
+		return evalIfExpression(node)
 	}
 
-	return &object.Null{}
+	return NULL
 }
 
 func evalStatements(stmts []ast.Statement) object.Object {
 	var result object.Object
+loop:
 	for _, stmt := range stmts {
 		result = Eval(stmt)
+		if result.Type() == object.RETURN_OBJ {
+			break loop
+		}
 	}
 	return result
 }
@@ -68,6 +78,18 @@ func evalInfix(operator string, left, right object.Object) object.Object {
 	}
 }
 
+func evalIfExpression(node *ast.IfExpression) object.Object {
+	con := Eval(node.Condition)
+	res := isTruthy(con)
+	if res && node.Consequence != nil {
+		return Eval(node.Consequence)
+	} else if node.Alternative != nil {
+		return Eval(node.Alternative)
+	} else {
+		return NULL
+	}
+}
+
 func evalInfixIntegers(operator string, left, right object.Object) object.Object {
 	l := left.(*object.Integer).Value
 	r := right.(*object.Integer).Value
@@ -82,15 +104,15 @@ func evalInfixIntegers(operator string, left, right object.Object) object.Object
 	case "/":
 		return &object.Integer{Value: l / r}
 	case "==":
-		return &object.Boolean{Value: l == r}
+		return returnNativeBool(l == r)
 	case "<=":
-		return &object.Boolean{Value: l <= r}
+		return returnNativeBool(l <= r)
 	case "<":
-		return &object.Boolean{Value: l < r}
+		return returnNativeBool(l < r)
 	case ">":
-		return &object.Boolean{Value: l > r}
+		return returnNativeBool(l > r)
 	case "!=":
-		return &object.Boolean{Value: l != r}
+		return returnNativeBool(l != r)
 	default:
 		return NULL
 	}
@@ -108,6 +130,20 @@ func evalPrefix(operator string, right object.Object) object.Object {
 		println("got inc")
 	}
 	return right
+}
+
+func isTruthy(condition object.Object) bool {
+	switch o := condition.(type) {
+	case *object.Boolean:
+		return o.Value
+	case *object.Integer:
+		if o.Value == 0 || o.Value == -0 {
+			return false
+		}
+		return true
+	default:
+		return false
+	}
 }
 
 func evalBangOperator(obj object.Object) object.Object {
