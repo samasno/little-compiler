@@ -19,6 +19,12 @@ func TestEvalIntegerObject(t *testing.T) {
 		{"100", 100},
 		{"-100", -100},
 		{"-33", -33},
+		{"5 + 5 + 5 - 10", 5},
+		{"7 - 2 + 3", 8},
+		{"30 / 10 * 2", 6},
+		{"3 + 3 * 2", 9},
+		{"2 * ( 2 + 3 )", 10},
+		{"(5 - ( 2 * 1 )) + 5", 8},
 	}
 
 	for _, tt := range tests {
@@ -45,6 +51,13 @@ func TestEvalBoolObject(t *testing.T) {
 	}{
 		{"true", true},
 		{"false", false},
+		{"3 < 5", true},
+		{"1 != 2", true},
+		{"2 + 2 == 4", true},
+		{"2 - 2 == 4", false},
+		{"3 * 3 == 3", false},
+		{"10 * 10 != 100", false},
+		{"2 > 100", false},
 	}
 
 	for _, tt := range tests {
