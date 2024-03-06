@@ -31,6 +31,11 @@ func Eval(node ast.Node) object.Object {
 	case *ast.BlockStatement:
 		println("block stmt")
 
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
+		right := Eval(node.Right)
+		return evalInfix(node.Operator, left, right)
+
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
 		return evalPrefix(node.Operator, right)
@@ -52,6 +57,43 @@ func returnNativeBool(b bool) *object.Boolean {
 		return TRUE
 	}
 	return FALSE
+}
+
+func evalInfix(operator string, left, right object.Object) object.Object {
+	switch {
+	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+		return evalInfixIntegers(operator, left, right)
+	default:
+		return NULL
+	}
+}
+
+func evalInfixIntegers(operator string, left, right object.Object) object.Object {
+	l := left.(*object.Integer).Value
+	r := right.(*object.Integer).Value
+
+	switch operator {
+	case "+":
+		return &object.Integer{Value: l + r}
+	case "-":
+		return &object.Integer{Value: l - r}
+	case "*":
+		return &object.Integer{Value: l * r}
+	case "/":
+		return &object.Integer{Value: l / r}
+	case "==":
+		return &object.Boolean{Value: l == r}
+	case "<=":
+		return &object.Boolean{Value: l <= r}
+	case "<":
+		return &object.Boolean{Value: l < r}
+	case ">":
+		return &object.Boolean{Value: l > r}
+	case "!=":
+		return &object.Boolean{Value: l != r}
+	default:
+		return NULL
+	}
 }
 
 func evalPrefix(operator string, right object.Object) object.Object {
@@ -81,6 +123,7 @@ func evalBangOperator(obj object.Object) object.Object {
 		}
 		return FALSE
 	}
+
 	return FALSE
 }
 
