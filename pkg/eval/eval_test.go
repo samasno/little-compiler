@@ -25,6 +25,10 @@ func TestEvalIntegerObject(t *testing.T) {
 		{"3 + 3 * 2", 9},
 		{"2 * ( 2 + 3 )", 10},
 		{"(5 - ( 2 * 1 )) + 5", 8},
+		{"if(1 == 1){ return 2}", 2},
+		{"if(false) { return 100} else { return 2+2 }", 4},
+		{"9; 100; return 5; 7;6;", 5},
+		{"if(true){ 2+2; return 3; 100;}", 3},
 	}
 
 	for _, tt := range tests {
@@ -54,10 +58,12 @@ func TestEvalBoolObject(t *testing.T) {
 		{"3 < 5", true},
 		{"1 != 2", true},
 		{"2 + 2 == 4", true},
-		{"2 - 2 == 4", false},
+		{"(2 + 1) == 4", false},
 		{"3 * 3 == 3", false},
-		{"10 * 10 != 100", false},
+		{"(10 * 10) == 100", true},
 		{"2 > 100", false},
+		{"if (2==2){ return true }", true},
+		{"if (!2){return false} else { return true }", true},
 	}
 
 	for _, tt := range tests {
@@ -66,7 +72,7 @@ func TestEvalBoolObject(t *testing.T) {
 	}
 }
 
-func TestEvalNotOperand(t *testing.T) {
+func TestEvalBangOperator(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected bool
@@ -88,7 +94,32 @@ func TestEvalNotOperand(t *testing.T) {
 	}
 }
 
+func TestIfReturnsNull(t *testing.T) {
+	inputs := []string{
+		"if (false) { return 80 }",
+		"if (!3) { return 100 }",
+	}
+
+	for _, tt := range inputs {
+		obj := testEval(tt)
+		ok := testIsNull(t, obj)
+		if !ok {
+			fmt.Printf("failed test case for '%s'\n", tt)
+		}
+	}
+}
+
+func unwrapReturn(obj object.Object) object.Object {
+	r, ok := obj.(*object.Return)
+	if !ok {
+		return obj
+	}
+
+	return r.Value
+}
+
 func testIntegerObject(t *testing.T, obj object.Object, exp int64) bool {
+	obj = unwrapReturn(obj)
 	result, ok := obj.(*object.Integer)
 	if !ok {
 		t.Errorf("expected integer obj got %s\n", reflect.TypeOf(obj))
@@ -102,7 +133,17 @@ func testIntegerObject(t *testing.T, obj object.Object, exp int64) bool {
 	return true
 }
 
+func testIsNull(t *testing.T, obj object.Object) bool {
+	obj = unwrapReturn(obj)
+	if obj != NULL {
+		t.Errorf("expected NULL got %v\n", reflect.TypeOf(obj))
+	}
+
+	return true
+}
+
 func testBoolObject(t *testing.T, obj object.Object, exp bool) bool {
+	obj = unwrapReturn(obj)
 	b, ok := obj.(*object.Boolean)
 	if !ok {
 		t.Errorf("expected bool obj got %s\n", reflect.TypeOf(obj))
