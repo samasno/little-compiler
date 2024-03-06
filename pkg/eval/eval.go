@@ -52,11 +52,12 @@ func Eval(node ast.Node) object.Object {
 
 func evalStatements(stmts []ast.Statement) object.Object {
 	var result object.Object
-loop:
+
 	for _, stmt := range stmts {
 		result = Eval(stmt)
 		if result.Type() == object.RETURN_OBJ {
-			break loop
+			r, _ := result.(*object.Return)
+			return r.Value
 		}
 	}
 	return result
