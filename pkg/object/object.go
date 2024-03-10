@@ -2,6 +2,26 @@ package object
 
 import "fmt"
 
+func NewEnvironment() *Environment {
+  return &Environment{
+    store: map[string]Object{},
+  }
+}
+
+type Environment struct {
+  store map[string]Object
+}
+
+func (e *Environment) Get(name string) (Object, bool) {
+  obj, ok := e.store[name]
+  return obj, ok
+}
+
+func(e *Environment) Set(name string, value Object) Object {
+  e.store[name] = value
+  return value
+}
+
 type Object interface {
 	Type() ObjectType
 	Inspect() string
