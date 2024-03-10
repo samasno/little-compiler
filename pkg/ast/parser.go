@@ -158,17 +158,7 @@ func (p *Parser) parseLet() Statement {
 
 	p.nextToken()
 
-	switch {
-	case p.currentIs(tokens.INTEGER):
-		stmt.Value = p.parseInteger()
-	case p.currentIs(tokens.TRUE), p.currentIs(tokens.FALSE):
-		stmt.Value = p.parseBoolean()
-	case p.currentIs(tokens.FUNCTION):
-		stmt.Value = p.parseFnLiteral()
-	default:
-		log.Fatalf("unexpected token %s\n", p.currentToken.Type)
-	}
-
+  stmt.Value = p.parseExpression(LOWEST)
 	return stmt
 }
 
