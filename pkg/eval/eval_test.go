@@ -109,6 +109,53 @@ func TestIfReturnsNull(t *testing.T) {
 	}
 }
 
+func TestErrorHandling(t *testing.T) {
+  tests := []struct {
+    input string
+    expectedMessage string
+  } {
+    { "5 + true", "type mismatch: INTEGER + BOOLEAN"},
+    { "2 + false; 3;", "type mismatch: INTEGER + BOOLEAN"},
+    { "-true", "unknown operator: -BOOLEAN"},
+    { "5; true + false; 2;", "unknown operator: BOOLEAN + BOOLEAN"},
+    { "if (2 > 1) { true + false }", "unknown operator: BOOLEAN + BOOLEAN"},
+    { "if (2 > 1) { if (2 > 1) { return true + true }} else { return 1}", "unknown operator: BOOLEAN + BOOLEAN"},
+  }
+
+  for _, tt := range tests {
+    obj := testEval(tt.input)
+    err, ok := obj.(*object.Error)
+    if !ok {
+      t.Errorf("failed test case for %s expected ERROR obj got %s\n", tt.input, reflect.TypeOf(obj))
+      continue
+    }
+
+    if err.Message != tt.expectedMessage {
+      t.Errorf("expected message '%s' got '%s'\n", tt.expectedMessage, err.Message)
+    }
+  }
+}
+
+func TestLetStatements(t *testing.T) {
+  tests := []struct {
+    input string
+    expected int64
+  }{
+    {"let a = 100;a;", 100},
+    { "let b = 2 + 2;b;", 4},
+    {"let c = 10 * 2;c;", 20},
+  }
+
+  for _, tt := range tests {
+    obj := testEval(tt.input)
+    res := testIntegerObject(t, obj, tt.expected)
+    if !res {
+      fmt.Printf("failed test case for %s\n", tt.input)
+    }
+  }
+  
+}
+
 func unwrapReturn(obj object.Object) object.Object {
 	r, ok := obj.(*object.Return)
 	if !ok {
@@ -152,3 +199,5 @@ func testBoolObject(t *testing.T, obj object.Object, exp bool) bool {
 
 	return true
 }
+
+
