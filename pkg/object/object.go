@@ -1,6 +1,10 @@
 package object
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/samasno/little-compiler/pkg/object"
+)
 
 func NewEnvironment() *Environment {
   return &Environment{
@@ -43,6 +47,11 @@ type Error struct {
   Message string 
 }
 
+type Function struct {
+  Params []object.Object
+  Body []ast.Statem
+}
+
 type Null struct{}
 
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
@@ -68,4 +77,5 @@ const (
 	NULL_OBJ    = "NULL"
 	RETURN_OBJ  = "RETURN"
   ERROR_OBJ = "ERROR"
+  FUNCTION_OBJ = "FUNCTION"
 )
