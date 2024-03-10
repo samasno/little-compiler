@@ -119,7 +119,6 @@ func unwrapReturn(obj object.Object) object.Object {
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, exp int64) bool {
-	obj = unwrapReturn(obj)
 	result, ok := obj.(*object.Integer)
 	if !ok {
 		t.Errorf("expected integer obj got %s\n", reflect.TypeOf(obj))
@@ -134,7 +133,6 @@ func testIntegerObject(t *testing.T, obj object.Object, exp int64) bool {
 }
 
 func testIsNull(t *testing.T, obj object.Object) bool {
-	obj = unwrapReturn(obj)
 	if obj != NULL {
 		t.Errorf("expected NULL got %v\n", reflect.TypeOf(obj))
 	}
@@ -143,7 +141,6 @@ func testIsNull(t *testing.T, obj object.Object) bool {
 }
 
 func testBoolObject(t *testing.T, obj object.Object, exp bool) bool {
-	obj = unwrapReturn(obj)
 	b, ok := obj.(*object.Boolean)
 	if !ok {
 		t.Errorf("expected bool obj got %s\n", reflect.TypeOf(obj))

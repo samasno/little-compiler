@@ -8,7 +8,7 @@ import (
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
-		return evalStatements(node.Statements)
+		return evalProgram(node.Statements)
 
 	case *ast.LetStatement:
 		println("got let statement")
@@ -32,7 +32,7 @@ func Eval(node ast.Node) object.Object {
 		println("fnlit")
 
 	case *ast.BlockStatement:
-		return evalStatements(node.Statements)
+		return evalBlockStatement(node)
 
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
@@ -50,13 +50,12 @@ func Eval(node ast.Node) object.Object {
 	return NULL
 }
 
-func evalStatements(stmts []ast.Statement) object.Object {
+func evalProgram(stmts []ast.Statement) object.Object {
 	var result object.Object
 
 	for _, stmt := range stmts {
 		result = Eval(stmt)
-		if result.Type() == object.RETURN_OBJ {
-			r, _ := result.(*object.Return)
+		if r, ok := result.(*object.Return); ok {
 			return r.Value
 		}
 	}
@@ -89,6 +88,19 @@ func evalIfExpression(node *ast.IfExpression) object.Object {
 	} else {
 		return NULL
 	}
+}
+
+func evalBlockStatement(node *ast.BlockStatement) object.Object {
+	var result object.Object
+
+	for _, stmt := range node.Statements {
+		result = Eval(stmt)
+		if result.Type() == object.RETURN_OBJ {
+			return result
+		}
+	}
+
+	return result
 }
 
 func evalInfixIntegers(operator string, left, right object.Object) object.Object {
