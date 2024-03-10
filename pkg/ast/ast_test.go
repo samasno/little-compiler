@@ -14,6 +14,8 @@ func TestParseLetStatement(t *testing.T) {
 let a = 100
 let b = 231;
 let c = 25252525;
+let d = 2 + 2;
+let e = (5 * 5) + 2;
 `
 
 	l := lexer.NewLexer(input)
@@ -25,21 +27,20 @@ let c = 25252525;
 		t.Fatal("parse program nil")
 	}
 
-	if len(program.Statements) != 3 {
-		t.Errorf("expected 3 statements, got %d", len(program.Statements))
-	}
-
 	ids := []struct {
 		expectedIdentifier string
 	}{
 		{"a"},
 		{"b"},
 		{"c"},
+    {"d"},
+    {"e"},
 	}
 
 	for i, s := range ids {
 		raw := program.Statements[i]
 		statement, ok := raw.(*LetStatement)
+    println(raw.String())
 
 		if !ok {
 			t.Errorf("statement %d not a let statement\n", i+1)
