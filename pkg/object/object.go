@@ -1,9 +1,11 @@
 package object
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
 
-	"github.com/samasno/little-compiler/pkg/object"
+	"github.com/samasno/little-compiler/pkg/ast"
 )
 
 func NewEnvironment() *Environment {
@@ -12,12 +14,22 @@ func NewEnvironment() *Environment {
   }
 }
 
+func NewEnclosedEnvironment(outer *Environment) *Environment {
+  return &Environment{store:map[string]Object{}, outer: outer}
+}
+
 type Environment struct {
   store map[string]Object
+  outer *Environment
 }
 
 func (e *Environment) Get(name string) (Object, bool) {
   obj, ok := e.store[name]
+
+  if !ok {
+    obj, ok = e.outer.Get(name)
+  }
+
   return obj, ok
 }
 
@@ -48,8 +60,9 @@ type Error struct {
 }
 
 type Function struct {
-  Params []object.Object
-  Body []ast.Statem
+  Params []*ast.Identifier
+  Body *ast.BlockStatement
+  Env *Environment
 }
 
 type Null struct{}
@@ -68,6 +81,26 @@ func (r *Return) Inspect() string  { return r.Value.Inspect() }
 
 func (e *Error) Type() ObjectType { return ERROR_OBJ }
 func (e *Error) Inspect() string { return e.Message }
+
+func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
+func (f *Function) Inspect() string {
+  var out bytes.Buffer
+  params := []string{}
+  for _, p := range f.Params {
+    params = append(params, p.String())
+
+  }
+
+  out.WriteString("fn")
+  out.WriteString("()")
+  out.WriteString(strings.Join(params, ","))
+  out.WriteString(") {\n")
+  out.WriteString(f.Body.String())
+  out.WriteString("\n}")
+
+  return out.String()
+  
+}
 
 type ObjectType string
 
