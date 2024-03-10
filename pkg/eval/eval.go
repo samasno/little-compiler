@@ -52,7 +52,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return returnNativeBool(node.Value)
 
 	case *ast.FnLiteral:
-		println("fnlit")
+    params := node.Params
+    body := node.Body
+    return &object.Function{Params: params, Body: body, Env: env}
 
 	case *ast.BlockStatement:
 		return evalBlockStatement(node, env)
@@ -78,11 +80,72 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
     return evalPrefix(node.Operator, right)
 
+  case *ast.CallExpression:
+    fn := Eval(node.Function, env)
+
+    if isError(fn) {
+      return fn
+    }
+
+    args := evalExpressions(node.Arguments, env)
+    
+    if len(args) == 1 && isError(args[0]) {
+      return args[0]
+    }
+    
+    return applyFunction(fn, args)
+    
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
 	}
 
 	return NULL
+}
+
+func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Object {
+  args := []object.Object{}
+
+  for _, exp := range exps {
+    evaluated := Eval(exp, env)
+    if isError(evaluated) {
+      return []object.Object{evaluated}
+    }
+
+    args = append(args, evaluated)
+  }
+
+  return args
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+  function, ok := fn.(*object.Function)
+
+  if !ok {
+    return newError("expected function, got %s", fn.Type())
+  }
+
+  extendedEnv := extendedFunctionEnv(function, args)
+
+  result := Eval(function.Body, extendedEnv)
+
+  return unwrapEvaluatedReturn(result)
+}
+
+func extendedFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
+  env := object.NewEnclosedEnvironment(fn.Env)
+
+  for pid, p := range fn.Params {
+    env.Set(p.Value, args[pid])
+  }
+
+  return env
+}
+
+func unwrapEvaluatedReturn(obj object.Object) object.Object {
+  if rv, ok := obj.(*object.Return); ok {
+    return rv.Value
+  }
+  return obj
 }
 
 func isError(obj object.Object) bool {
@@ -117,6 +180,7 @@ func returnNativeBool(b bool) *object.Boolean {
 	}
 	return FALSE
 }
+
 
 func evalInfix(operator string, left, right object.Object) object.Object {
 	switch {

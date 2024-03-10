@@ -157,6 +157,46 @@ func TestLetStatements(t *testing.T) {
   
 }
 
+func TestEvalFunction(t *testing.T) {
+  input := "fn(x) { x + 2;};"
+
+  result := testEval(input)
+
+  fn, ok := result.(*object.Function)
+  if !ok {
+    t.Fatalf("expected Function object got %s \n", reflect.TypeOf(result))
+  }
+
+  if len(fn.Params) != 1 {
+    t.Fatalf("expected 1 param go t %d\n", len(fn.Params))
+  }
+
+  if fn.Params[0].String() != "x" {
+    t.Fatalf("expected param 'x' got %s\n", fn.Params[0].String())
+  }
+
+  if fn.Body.String() != "(x + 2)" {
+    t.Fatalf("unexpected body got %s\n", fn.Body.String())
+  }
+}
+
+func TestEvalFunctionCall(t *testing.T) {
+  tests := []struct {
+    input string
+    expected int64 
+  } {
+    { "let identity = fn(x) { x; }; identity(5);", 5},
+    { "let identity = fn (x) { return x }; 5;", 5},
+    { "let double = fn(x) { x * 2;}; double(5)", 10},
+    { "let add = fn(x,y) { return x + y }; add(5, add(2,3))", 10},
+  }
+
+  for _, tt := range tests {
+    result := testEval(tt.input)
+    testIntegerObject(t, result, tt.expected)
+  }
+}
+
 func unwrapReturn(obj object.Object) object.Object {
 	r, ok := obj.(*object.Return)
 	if !ok {
