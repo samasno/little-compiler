@@ -23,11 +23,11 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
     if ok {
       return newError("binding for %s already exists", node.Name.Value)
     }
-    letBindings[node.Name.Value] = val
+    env.Set(node.Name.Value, val)
     return val
        
 	case *ast.Identifier:
-    val, ok := letBindings[node.Value]
+    val, ok := env.Get(node.Value)
     if !ok {
       return newError("variable %s does not exist", node.Value)
     }
@@ -242,18 +242,6 @@ func evalMinusOperator(right object.Object) object.Object {
 	return &object.Integer{Value: -value}
 }
 
-func evalLetStatement(node *ast.LetStatement, env *object.Environment) object.Object {
-  _, ok := letBindings[node.Name.Value]
-  if ok {
-    return newError("binding for let %s already exists", node.Name.Value)
-  }
-
-  val := Eval(node.Value, env)
-  
-  return val
-}
-
-var letBindings = map[string]object.Object {}
 
 var (
 	TRUE  = &object.Boolean{Value: true}
