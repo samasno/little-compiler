@@ -13,7 +13,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalProgram(node.Statements, env)
 
 	case *ast.LetStatement:
-    println(node.String())
     val := Eval(node.Value, env)
     if isError(val) {
       return val
@@ -82,7 +81,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
   case *ast.CallExpression:
     fn := Eval(node.Function, env)
-
     if isError(fn) {
       return fn
     }
