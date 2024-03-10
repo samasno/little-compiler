@@ -7,19 +7,35 @@ import (
 	"github.com/samasno/little-compiler/pkg/object"
 )
 
-func Eval(node ast.Node) object.Object {
+func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
-		return evalProgram(node.Statements)
+		return evalProgram(node.Statements, env)
 
 	case *ast.LetStatement:
-		println("got let statement")
+    println(node.String())
+    val := Eval(node.Value, env)
+    if isError(val) {
+      return val
+    }
 
+    _, ok := env.Get(node.Name.Value) 
+    if ok {
+      return newError("binding for %s already exists", node.Name.Value)
+    }
+    letBindings[node.Name.Value] = val
+    return val
+       
 	case *ast.Identifier:
-		println("got identifier")
+    val, ok := letBindings[node.Value]
+    if !ok {
+      return newError("variable %s does not exist", node.Value)
+    }
+
+    return val
 
 	case *ast.ReturnStatement:
-    val := Eval(node.Value)
+    val := Eval(node.Value, env)
     if isError(val) {
       return val
     }
@@ -27,7 +43,7 @@ func Eval(node ast.Node) object.Object {
 		return &object.Return{Value: val}
 
 	case *ast.ExpressionStatement:
-		return Eval(node.Expression)
+		return Eval(node.Expression, env)
 
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -39,15 +55,15 @@ func Eval(node ast.Node) object.Object {
 		println("fnlit")
 
 	case *ast.BlockStatement:
-		return evalBlockStatement(node)
+		return evalBlockStatement(node, env)
 
 	case *ast.InfixExpression:
-		left := Eval(node.Left)
+		left := Eval(node.Left, env)
     if isError(left) {
       return left
     }
     
-		right := Eval(node.Right)
+		right := Eval(node.Right, env)
     if isError(right) {
       return right
     }
@@ -55,7 +71,7 @@ func Eval(node ast.Node) object.Object {
 		return evalInfix(node.Operator, left, right)
 
 	case *ast.PrefixExpression:
-		right := Eval(node.Right)
+		right := Eval(node.Right, env)
 		if isError(right) {
       return right
     }
@@ -63,7 +79,7 @@ func Eval(node ast.Node) object.Object {
     return evalPrefix(node.Operator, right)
 
 	case *ast.IfExpression:
-		return evalIfExpression(node)
+		return evalIfExpression(node, env)
 	}
 
 	return NULL
@@ -77,11 +93,11 @@ func isError(obj object.Object) bool {
   return false
 }
 
-func evalProgram(stmts []ast.Statement) object.Object {
+func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, stmt := range stmts {
-		result = Eval(stmt)
+		result = Eval(stmt, env)
 		
     switch r := result.(type) {
       case *object.Return:
@@ -113,23 +129,23 @@ func evalInfix(operator string, left, right object.Object) object.Object {
 	}
 }
 
-func evalIfExpression(node *ast.IfExpression) object.Object {
-	con := Eval(node.Condition)
+func evalIfExpression(node *ast.IfExpression, env *object.Environment) object.Object {
+	con := Eval(node.Condition, env)
 	res := isTruthy(con)
 	if res && node.Consequence != nil {
-		return Eval(node.Consequence)
+		return Eval(node.Consequence, env)
 	} else if node.Alternative != nil {
-		return Eval(node.Alternative)
+		return Eval(node.Alternative, env)
 	} else {
 		return NULL
 	}
 }
 
-func evalBlockStatement(node *ast.BlockStatement) object.Object {
+func evalBlockStatement(node *ast.BlockStatement, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, stmt := range node.Statements {
-		result = Eval(stmt)
+		result = Eval(stmt, env)
     switch result.Type() {
     case object.RETURN_OBJ, object.ERROR_OBJ:
       return result
@@ -225,6 +241,19 @@ func evalMinusOperator(right object.Object) object.Object {
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
 }
+
+func evalLetStatement(node *ast.LetStatement, env *object.Environment) object.Object {
+  _, ok := letBindings[node.Name.Value]
+  if ok {
+    return newError("binding for let %s already exists", node.Name.Value)
+  }
+
+  val := Eval(node.Value, env)
+  
+  return val
+}
+
+var letBindings = map[string]object.Object {}
 
 var (
 	TRUE  = &object.Boolean{Value: true}
