@@ -143,8 +143,8 @@ func TestLetStatements(t *testing.T) {
     expected int64
   }{
     {"let a = 100;a;", 100},
-   // { "let b = 2 + 2;b;", 4},
-   // {"let c = 10 * 2;c;", 20},
+    { "let b = 2 + 2;b;", 4},
+    {"let c = 10 * 2;c;", 20},
   }
 
   for _, tt := range tests {
@@ -185,7 +185,7 @@ func TestEvalFunctionCall(t *testing.T) {
     input string
     expected int64 
   } {
-    { "let identity = fn(x) { x; }; identity(5);", 5},
+    { "let identity = fn(x) { return x; }; identity(5);", 5},
     { "let identity = fn (x) { return x }; 5;", 5},
     { "let double = fn(x) { x * 2;}; double(5)", 10},
     { "let add = fn(x,y) { return x + y }; add(5, add(2,3))", 10},
