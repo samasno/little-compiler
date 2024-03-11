@@ -123,7 +123,8 @@ func TestErrorHandling(t *testing.T) {
 		{"5; true + false; 2;", "unknown operator: BOOLEAN + BOOLEAN"},
 		{"if (2 > 1) { true + false }", "unknown operator: BOOLEAN + BOOLEAN"},
 		{"if (2 > 1) { if (2 > 1) { return true + true }} else { return 1}", "unknown operator: BOOLEAN + BOOLEAN"},
-		{`"one" + 3`, "type mismatch: STRING + NUMBER"},
+		{`"one" + 3`, "type mismatch: STRING + INTEGER"},
+		{`let a = "test"; return -a;`, "unknown operator: -STRING"},
 	}
 
 	for _, tt := range tests {
