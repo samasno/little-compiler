@@ -44,6 +44,8 @@ let b=3
 let c = fn(x,y){
 	return x * y;
 }
+"string works";
+"one";
 `
 	ex := []tokens.Token{
 		{tokens.LET, tokens.LET},
@@ -70,6 +72,8 @@ let c = fn(x,y){
 		{tokens.IDENTIFIER, `y`},
 		{tokens.SEMICOLON, tokens.SEMICOLON},
 		{tokens.RBRACE, tokens.RBRACE},
+		{tokens.STRING, "string works"},
+		{tokens.STRING, "one"},
 		{tokens.EOF, tokens.EOF},
 	}
 
