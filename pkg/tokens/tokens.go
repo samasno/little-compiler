@@ -22,6 +22,7 @@ const (
 	RBRACKET  = "]"
 	NEWLINE   = "\n"
 	TAB       = "\t"
+	DUBQ      = `"`
 
 	// OPERATORS
 	ASSIGN   = "="
@@ -42,7 +43,7 @@ const (
 	DEC      = "--"
 
 	// KEYWORDS
-	STRING   = "str"
+	STRING   = "STRING"
 	INT      = "int" // type declarations
 	INTEGER  = "INTEGER"
 	FUNCTION = "fn"
