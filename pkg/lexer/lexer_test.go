@@ -37,7 +37,7 @@ test
 	}
 }
 
-func TestLetDeclaration(t *testing.T) {
+func TestSequencesOfTokens(t *testing.T) {
 	test := `
 let a = 100
 let b=3
@@ -73,7 +73,9 @@ let c = fn(x,y){
 		{tokens.SEMICOLON, tokens.SEMICOLON},
 		{tokens.RBRACE, tokens.RBRACE},
 		{tokens.STRING, "string works"},
+		{tokens.SEMICOLON, tokens.SEMICOLON},
 		{tokens.STRING, "one"},
+		{tokens.SEMICOLON, tokens.SEMICOLON},
 		{tokens.EOF, tokens.EOF},
 	}
 
