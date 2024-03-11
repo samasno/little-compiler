@@ -242,6 +242,7 @@ func (ix *InfixExpression) String() string {
 
 func (s *StringLiteral) expressionNode()            {}
 func (s *StringLiteral) String() string             { return s.Value }
+func (s *StringLiteral) TokenLiteral() string       { return s.Token.Literal }
 func (ce *CallExpression) expressionNode()          {}
 func (ce *CallExpression) TokenLiteral() string     { return ce.Token.Literal }
 func (fl *FnLiteral) expressionNode()               {}
