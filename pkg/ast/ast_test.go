@@ -33,14 +33,14 @@ let e = (5 * 5) + 2;
 		{"a"},
 		{"b"},
 		{"c"},
-    {"d"},
-    {"e"},
+		{"d"},
+		{"e"},
 	}
 
 	for i, s := range ids {
 		raw := program.Statements[i]
 		statement, ok := raw.(*LetStatement)
-    println(raw.String())
+		println(raw.String())
 
 		if !ok {
 			t.Errorf("statement %d not a let statement\n", i+1)
@@ -64,71 +64,71 @@ let e = (5 * 5) + 2;
 }
 
 func TestParseLetFn(t *testing.T) {
-  input := `
+	input := `
 let addTwo = fn(a){return fn(){return a + 2}}
 `
-  l := lexer.NewLexer(input)
-  p := New(l)
-  program := p.ParseProgram()
+	l := lexer.NewLexer(input)
+	p := New(l)
+	program := p.ParseProgram()
 
-  if len(program.Statements) != 1 {
-    t.Errorf("expected 1 statement got %d\n", len(program.Statements))
-  }
-  
-  stmt, ok := program.Statements[0].(*LetStatement)
-  if !ok {
-    t.Errorf("expected exp stmt got %s\n", reflect.TypeOf(program.Statements[0]))
-  }
+	if len(program.Statements) != 1 {
+		t.Errorf("expected 1 statement got %d\n", len(program.Statements))
+	}
 
-  fn, ok := stmt.Value.(*FnLiteral)
-  if !ok {
-    t.Errorf("expected fn lit got %s\n", reflect.TypeOf(stmt.Value).String())
-  }
+	stmt, ok := program.Statements[0].(*LetStatement)
+	if !ok {
+		t.Errorf("expected exp stmt got %s\n", reflect.TypeOf(program.Statements[0]))
+	}
 
-  if len(fn.Params) != 1 {
-    t.Errorf("expected 1 param got %d\n", len(fn.Params))
-  } 
+	fn, ok := stmt.Value.(*FnLiteral)
+	if !ok {
+		t.Errorf("expected fn lit got %s\n", reflect.TypeOf(stmt.Value).String())
+	}
 
-  ident := fn.Params[0]
+	if len(fn.Params) != 1 {
+		t.Errorf("expected 1 param got %d\n", len(fn.Params))
+	}
 
-  if ident.Value != "a" {
-    t.Errorf("expected identifier 'a' got %v\n", ident.Value)
-  }
-  
-  if len(fn.Body.Statements) != 1 {
-    t.Errorf("expected on statement in fn lit body")
-  }
- 
-  rs, ok := fn.Body.Statements[0].(*ReturnStatement)
-  if !ok {
-    t.Errorf("expected return statement got %s\n", reflect.TypeOf(fn.Body.Statements[0]).String())
-  }
+	ident := fn.Params[0]
 
-  rfn, ok := rs.Value.(*FnLiteral)
-  if !ok {
-    t.Errorf("expected return value to be a fn lit got %s\n", reflect.TypeOf(rs.Value))
-  }
+	if ident.Value != "a" {
+		t.Errorf("expected identifier 'a' got %v\n", ident.Value)
+	}
 
-  if len(rfn.Params) != 0 {
-    t.Errorf("expected returned fn to have 0 params got %d\n", len(rfn.Params))
-  } 
+	if len(fn.Body.Statements) != 1 {
+		t.Errorf("expected on statement in fn lit body")
+	}
 
-  if len(rfn.Body.Statements) != 1 {
-    t.Errorf("expected on statement in return fn got %d\n", rfn.Body.Statements)
-  }
+	rs, ok := fn.Body.Statements[0].(*ReturnStatement)
+	if !ok {
+		t.Errorf("expected return statement got %s\n", reflect.TypeOf(fn.Body.Statements[0]).String())
+	}
 
-  drs, ok := rfn.Body.Statements[0].(*ReturnStatement)
-  if !ok {
-    t.Errorf("expected return return statemetn got %s\n", reflect.TypeOf(rfn.Body.Statements[0]))
-  }
+	rfn, ok := rs.Value.(*FnLiteral)
+	if !ok {
+		t.Errorf("expected return value to be a fn lit got %s\n", reflect.TypeOf(rs.Value))
+	}
 
-  difx, ok := drs.Value.(*InfixExpression)
-  if !ok {
-    t.Errorf("final infix exp got %s\n", reflect.TypeOf(drs.Value).String())
-  }
+	if len(rfn.Params) != 0 {
+		t.Errorf("expected returned fn to have 0 params got %d\n", len(rfn.Params))
+	}
 
-  println(difx.String())
- 
+	if len(rfn.Body.Statements) != 1 {
+		t.Errorf("expected on statement in return fn got %d\n", rfn.Body.Statements)
+	}
+
+	drs, ok := rfn.Body.Statements[0].(*ReturnStatement)
+	if !ok {
+		t.Errorf("expected return return statemetn got %s\n", reflect.TypeOf(rfn.Body.Statements[0]))
+	}
+
+	difx, ok := drs.Value.(*InfixExpression)
+	if !ok {
+		t.Errorf("final infix exp got %s\n", reflect.TypeOf(drs.Value).String())
+	}
+
+	println(difx.String())
+
 }
 
 func TestParseReturnStatement(t *testing.T) {
@@ -193,6 +193,82 @@ func TestString(t *testing.T) {
 
 	if pstr != str {
 		t.Fatalf("expected '%s' got '%s'", str, pstr)
+	}
+}
+
+func TestParseStrings(t *testing.T) {
+	input := `
+let a = "one hundred"
+let b = "test"
+`
+	expected := []string{
+		`one hundred`,
+		`test`,
+	}
+
+	l := lexer.NewLexer(input)
+	p := New(l)
+	program := p.ParseProgram()
+
+	for i, ll := range program.Statements {
+		ls, ok := ll.(*LetStatement)
+		if !ok {
+			t.Fatalf("expected let statement got %s\n", reflect.TypeOf(ll))
+		}
+
+		str, ok := ls.Value.(*StringLiteral)
+		if !ok {
+			t.Fatalf("expected str literal got %s\n", reflect.TypeOf(ls.Value))
+		}
+
+		if str.Value != expected[i] {
+			t.Fatalf("expected '%s' got '%s'\n", expected[i], str.Value)
+		}
+
+	}
+}
+
+func TestParseStringsInfix(t *testing.T) {
+	input := `
+let a = "string" + " works"
+`
+
+	l := lexer.NewLexer(input)
+	p := New(l)
+	pr := p.ParseProgram()
+
+	if len(pr.Statements) != 1 {
+		t.Fatalf("exected 1 statement got %d\n", len(pr.Statements))
+
+	}
+
+	ls, ok := pr.Statements[0].(*LetStatement)
+	if !ok {
+		t.Fatalf("didn't get let statement got %s\n", reflect.TypeOf(pr.Statements[0]))
+	}
+
+	ifx, ok := ls.Value.(*InfixExpression)
+	if !ok {
+		t.Fatalf("expected infix got %s\n", reflect.TypeOf(ls.Value))
+	}
+
+	left, ok := ifx.Left.(*StringLiteral)
+	if !ok {
+		t.Fatalf("expected left string got %s\n", reflect.TypeOf(ifx.Left))
+	}
+
+	if left.Value != "string" {
+		t.Fatalf("expected left to be 'string' got %s\n", left.Value)
+	}
+
+	right, ok := ifx.Right.(*StringLiteral)
+
+	if !ok {
+		t.Fatalf("expected right to be str lit got %s\n", reflect.TypeOf(ifx.Right))
+	}
+
+	if right.Value != " works" {
+		t.Fatalf("expected right ' works' but got %s\n", right.Value)
 	}
 }
 
@@ -504,7 +580,7 @@ func TestParseFnLiteral(t *testing.T) {
 	l := lexer.NewLexer(input)
 	p := New(l)
 	program := p.ParseProgram()
-  println(program.String())
+	println(program.String())
 	if len(program.Statements) != 1 {
 		t.Fatalf("expected 1 statement got %d\n", len(program.Statements))
 	}
@@ -520,50 +596,50 @@ func TestParseFnLiteral(t *testing.T) {
 		t.Fatalf("expected fn literal got %s\n", reflect.TypeOf(stmt.Value))
 	}
 
-  if len(fn.Params) != 2 {
-    t.Fatalf("expected %d params got %d\n",2, len(fn.Params))
-  }
+	if len(fn.Params) != 2 {
+		t.Fatalf("expected %d params got %d\n", 2, len(fn.Params))
+	}
 	println(fn.String())
 }
 
 func TestParseCallExpression(t *testing.T) {
-  input := "add(3,5*5+2,9)"
+	input := "add(3,5*5+2,9)"
 
-  l := lexer.NewLexer(input)
-  p := New(l)
-  program := p.ParseProgram()
+	l := lexer.NewLexer(input)
+	p := New(l)
+	program := p.ParseProgram()
 
-  if len(program.Statements) != 1 {
-    t.Errorf("expected 1 statement got %d\n", len(program.Statements))
-  }
+	if len(program.Statements) != 1 {
+		t.Errorf("expected 1 statement got %d\n", len(program.Statements))
+	}
 
-  // statement should be  exp statement 
-  stmt, ok := program.Statements[0].(*ExpressionStatement)
-  if !ok {
-    t.Fatalf("exprected call exp got %s\n", reflect.TypeOf(program.Statements[0]))
-  }
+	// statement should be  exp statement
+	stmt, ok := program.Statements[0].(*ExpressionStatement)
+	if !ok {
+		t.Fatalf("exprected call exp got %s\n", reflect.TypeOf(program.Statements[0]))
+	}
 
-  // statement exp sould be call exp 
-  ce, ok := stmt.Expression.(*CallExpression)
-  if !ok {
-    t.Errorf("expected call exp got %s\n", reflect.TypeOf(stmt))
-  }
-  // call fn should be add 
+	// statement exp sould be call exp
+	ce, ok := stmt.Expression.(*CallExpression)
+	if !ok {
+		t.Errorf("expected call exp got %s\n", reflect.TypeOf(stmt))
+	}
+	// call fn should be add
 
-  fn, ok := ce.Function.(*Identifier)
-  if !ok {
-    t.Errorf("expected fn to be identifier got %s\n", reflect.TypeOf(ce.Function))
-  }
+	fn, ok := ce.Function.(*Identifier)
+	if !ok {
+		t.Errorf("expected fn to be identifier got %s\n", reflect.TypeOf(ce.Function))
+	}
 
-  if fn.Value != "add" {
-    t.Errorf("expected fn value to be add got %s\n", fn.Value)
-  }  
-  
-  if len(ce.Arguments) != 3 {
-    t.Errorf("expected 3 args got %d\n", len(ce.Arguments))
-  }
+	if fn.Value != "add" {
+		t.Errorf("expected fn value to be add got %s\n", fn.Value)
+	}
 
-  println(ce.String())  // call 
+	if len(ce.Arguments) != 3 {
+		t.Errorf("expected 3 args got %d\n", len(ce.Arguments))
+	}
+
+	println(ce.String()) // call
 }
 
 func checkParserErrors(t *testing.T, p *Parser) {
