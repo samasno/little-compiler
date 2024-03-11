@@ -17,14 +17,9 @@ func New(l *lexer.Lexer) *Parser {
 	}
 
 	p.registerPrefix(p.parseGroupedExpression, tokens.LPAREN)
-
-	p.registerPrefix(p.parseIdentifier,
-		tokens.IDENTIFIER,
-	)
-
-	p.registerPrefix(p.parseInteger,
-		tokens.INTEGER,
-	)
+	p.registerPrefix(p.parseIdentifier, tokens.IDENTIFIER)
+	p.registerPrefix(p.parseInteger, tokens.INTEGER)
+	p.registerPrefix(p.parseString, tokens.STRING)
 
 	p.registerPrefix(p.parseBoolean,
 		tokens.TRUE,
@@ -158,7 +153,7 @@ func (p *Parser) parseLet() Statement {
 
 	p.nextToken()
 
-  stmt.Value = p.parseExpression(LOWEST)
+	stmt.Value = p.parseExpression(LOWEST)
 	return stmt
 }
 
@@ -317,6 +312,10 @@ func (p *Parser) parseInteger() Expression {
 	}
 
 	return &IntegerLiteral{Token: p.currentToken, Value: int64(v)}
+}
+
+func (p *Parser) parseString() Expression {
+	return &StringLiteral{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
 func (p *Parser) parseBoolean() Expression {
