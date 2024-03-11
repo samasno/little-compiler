@@ -83,6 +83,8 @@ func TestEvalBangOperator(t *testing.T) {
 		{`!false`, true},
 		{`!!false`, false},
 		{`!1`, false},
+		{`let a = "test"; return !a;`, false},
+		{`let a = ""; return !a`, true},
 	}
 
 	for _, tt := range tests {
@@ -198,12 +200,13 @@ func TestEvalFunctionCall(t *testing.T) {
 	}
 }
 
-func TestStringConcat(t *testing.T) {
+func TestEvalString(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
 	}{
 		{`"test" + " " + "works"`, "test works"},
+		{`"one"`, "one"},
 	}
 
 	for _, tt := range tests {
@@ -225,6 +228,10 @@ func unwrapReturn(obj object.Object) object.Object {
 }
 
 func testStringObject(t *testing.T, obj object.Object, exp string) bool {
+	err, ok := obj.(*object.Error)
+	if ok {
+		println(err.Message)
+	}
 	result, ok := obj.(*object.String)
 	if !ok {
 		t.Errorf("expected string obj got %s\n", reflect.TypeOf(obj).String())
@@ -262,6 +269,10 @@ func testIsNull(t *testing.T, obj object.Object) bool {
 }
 
 func testBoolObject(t *testing.T, obj object.Object, exp bool) bool {
+	err, ok := obj.(*object.Error)
+	if ok {
+		println(err.Message)
+	}
 	b, ok := obj.(*object.Boolean)
 	if !ok {
 		t.Errorf("expected bool obj got %s\n", reflect.TypeOf(obj))
