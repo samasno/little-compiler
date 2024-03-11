@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"bytes"
 	"strconv"
 
 	"github.com/samasno/little-compiler/pkg/tokens"
@@ -11,6 +12,7 @@ type Lexer struct {
 	sourceLength int
 	position     int
 	readPosition int
+	Errors       []string
 }
 
 func NewLexer(source string) *Lexer {
@@ -49,6 +51,10 @@ func (l *Lexer) NextToken() tokens.Token {
 	next := string(l.source[l.position])
 
 	switch {
+	case tokens.DUBQ == next:
+		t := l.readString()
+		l.readPosition++
+		return t
 	case l.isComparator(next):
 		t := l.readComparator()
 		l.readPosition++
@@ -108,6 +114,28 @@ loop:
 	default:
 		return tokens.Token{tokens.IDENTIFIER, v}
 	}
+}
+
+func (l *Lexer) readString() tokens.Token {
+	tk := tokens.Token{Type: tokens.STRING}
+	var str bytes.Buffer
+	for {
+		l.readPosition++
+		if l.readPosition == l.sourceLength {
+			l.Errors = append(l.Errors, "unterminated string")
+			break
+		}
+
+		next := string(l.source[l.readPosition])
+		if next == tokens.DUBQ {
+			break
+		} else {
+			str.WriteString(next)
+		}
+	}
+
+	tk.Literal = str.String()
+	return tk
 }
 
 func (l *Lexer) isComparator(next string) bool {
@@ -194,8 +222,8 @@ func isKeyword(s string) bool {
 		tokens.INT,
 		tokens.FUNCTION,
 		tokens.RETURN,
-    tokens.IF,
-    tokens.ELSE:
+		tokens.IF,
+		tokens.ELSE:
 		return true
 	default:
 		return false
