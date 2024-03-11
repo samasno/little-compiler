@@ -61,9 +61,9 @@ type IfExpression struct {
 }
 
 type CallExpression struct {
-  Token tokens.Token
-  Function Expression
-  Arguments []Expression
+	Token     tokens.Token
+	Function  Expression
+	Arguments []Expression
 }
 
 type BlockStatement struct {
@@ -107,6 +107,11 @@ type IntegerLiteral struct {
 	Value int64
 }
 
+type StringLiteral struct {
+	Token tokens.Token
+	Value string
+}
+
 type BoolLiteral struct {
 	Token tokens.Token
 	Value bool
@@ -133,10 +138,10 @@ func (fl *FnLiteral) String() string {
 	}
 	out.WriteString(fl.Token.Literal)
 	out.WriteString(fmt.Sprintf("(%s) ", strings.Join(params, ",")))
-  if fl.Body != nil {
-    out.WriteString(fl.Body.String())
-  }
-		return out.String()
+	if fl.Body != nil {
+		out.WriteString(fl.Body.String())
+	}
+	return out.String()
 }
 
 func (rs *ReturnStatement) String() string {
@@ -179,17 +184,17 @@ func (bs *BlockStatement) String() string {
 }
 
 func (ce *CallExpression) String() string {
-  var out bytes.Buffer
-  args := []string{}
+	var out bytes.Buffer
+	args := []string{}
 
-  for _, a := range ce.Arguments {
-    args = append(args, a.String())
-  }
+	for _, a := range ce.Arguments {
+		args = append(args, a.String())
+	}
 
-  str := fmt.Sprintf("%s(%s)", ce.Function.String(), strings.Join(args, ","))
-  out.WriteString(str)
+	str := fmt.Sprintf("%s(%s)", ce.Function.String(), strings.Join(args, ","))
+	out.WriteString(str)
 
-  return out.String()
+	return out.String()
 }
 
 func (is *IfExpression) String() string {
@@ -235,7 +240,9 @@ func (ix *InfixExpression) String() string {
 	return out.String()
 }
 
-func (ce *CallExpression) expressionNode() {}
+func (s *StringLiteral) expressionNode()            {}
+func (s *StringLiteral) String() string             { return s.Value }
+func (ce *CallExpression) expressionNode()          {}
 func (ce *CallExpression) TokenLiteral() string     { return ce.Token.Literal }
 func (fl *FnLiteral) expressionNode()               {}
 func (fl *FnLiteral) TokenLiteral() string          { return fl.Token.Literal }
