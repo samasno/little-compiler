@@ -78,7 +78,7 @@ type Function struct {
 type Null struct{}
 
 func (b *Builtin) Type() ObjectType{ return BUILTIN_OBJ }
-func (b *Builtin) Inspect() string { return b.Fn.Inspect() }
+func (b *Builtin) Inspect() string { return "builtin function" }
 
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
