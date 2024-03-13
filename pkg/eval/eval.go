@@ -27,11 +27,16 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.Identifier:
 		val, ok := env.Get(node.Value)
-		if !ok {
-			return newError("variable %s does not exist", node.Value)
-		}
+		if ok {
+		  return val
+    }
 
-		return val
+    builtin, ok := builtins[node.Value]
+    if ok {
+      return builtin
+    }
+
+		return newError("variable %s does not exist", node.Value)
 
 	case *ast.ReturnStatement:
 		val := Eval(node.Value, env)
@@ -327,6 +332,24 @@ func evalMinusOperator(right object.Object) object.Object {
 	}
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
+}
+
+var builtins = map[string]*object.Builtin{
+  "len": {
+    Fn: func(args ...object.Object) object.Object {
+      if len(args) != 1 {
+        return newError("len expected %d args got %d\n", 1, len(args))
+      }
+
+      switch arg := args[0].(type) {
+      case *object.String:
+        l := len(arg.Value)
+        return &object.Integer{Value: int64(l)}
+      default:
+        return newError("len got invalid type: %s\n", args[0].Type())
+      }
+    },
+  },
 }
 
 var (
