@@ -161,6 +161,38 @@ func TestLetStatements(t *testing.T) {
 
 }
 
+func TestBuiltinFunction(t *testing.T) {
+  tests := []struct {
+    input string
+    expected interface{}
+  } {
+    {`len("")`, 0},
+    {`len("two")`, 3},
+    {`len("hello world")`, 11},
+    {`len(1)`, "argument to `len` not supported, got INTEGER"},
+    {`len("one", "two")`, "wrong number of arguments. got 2 want 1"},
+  }
+
+  for _, tt := range tests {
+    evaluated := testEval(tt.input)
+
+    switch  expected := tt.expected.(type) {
+    case int:
+      testIntegerObject(t, evaluated, int64(expected))
+    case string:
+      err, ok := evaluated.(*object.Error)
+      if !ok {
+        t.Errorf("expected error obj got %s", reflect.TypeOf(evaluated))
+        continue
+      }
+
+      if err.Message != tt.expected {
+        t.Errorf("wrong error message expected '%s' got %s'\n", tt.expected, err.Message)
+      }
+    }
+  }
+}
+
 func TestEvalFunction(t *testing.T) {
 	input := "fn(x) { x + 2;};"
 
@@ -275,7 +307,7 @@ func testBoolObject(t *testing.T, obj object.Object, exp bool) bool {
 		println(err.Message)
 	}
 	b, ok := obj.(*object.Boolean)
-	if !ok {
+	if !ok {    
 		t.Errorf("expected bool obj got %s\n", reflect.TypeOf(obj))
 	}
 	if b.Value != exp {
@@ -285,3 +317,4 @@ func testBoolObject(t *testing.T, obj object.Object, exp bool) bool {
 
 	return true
 }
+
