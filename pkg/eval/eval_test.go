@@ -201,6 +201,7 @@ func TestEvalFunctionCall(t *testing.T) {
 	}
 }
 
+
 func TestEvalString(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -217,6 +218,39 @@ func TestEvalString(t *testing.T) {
 			fmt.Printf("failed test case for '%s'\n", tt.input)
 		}
 	}
+}
+
+
+func TestBuiltinFunction(t *testing.T) {
+  tests := []struct {
+    input string
+    expected interface{}
+  } {
+    {`len("")`, 0},
+    {`len("two")`, 3},
+    {`len("hello world")`, 11},
+    {`len(1)`, "len got invalid type: INTEGER"},
+    {`len("one", "two")`, "len expected 1 args got 2"},
+  }
+
+  for _, tt := range tests {
+    evaluated := testEval(tt.input)
+
+    switch  expected := tt.expected.(type) {
+    case int:
+      testIntegerObject(t, evaluated, int64(expected))
+    case string:
+      err, ok := evaluated.(*object.Error)
+      if !ok {
+        t.Errorf("expected error obj got %s", reflect.TypeOf(evaluated))
+        continue
+      }
+
+      if err.Message != tt.expected {
+        t.Errorf("wrong error message expected '%s' got '%s'\n", tt.expected, err.Message)
+      }
+    }
+  }
 }
 
 func unwrapReturn(obj object.Object) object.Object {
