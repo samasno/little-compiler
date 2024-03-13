@@ -43,6 +43,12 @@ type Object interface {
 	Inspect() string
 }
 
+type Builtin struct {
+  Fn BuiltinFunction
+}
+
+type BuiltinFunction func(args ...Object) Object 
+
 type Integer struct {
 	Value int64
 }
@@ -70,6 +76,9 @@ type Function struct {
 }
 
 type Null struct{}
+
+func (b *Builtin) Type() ObjectType{ return BUILTIN_OBJ }
+func (b *Builtin) Inspect() string { return b.Fn.Inspect() }
 
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
@@ -119,4 +128,5 @@ const (
 	ERROR_OBJ    = "ERROR"
 	FUNCTION_OBJ = "FUNCTION"
 	STRING_OBJ   = "STRING"
+  BUILTIN_OBJ = "BUILTIN"
 )
