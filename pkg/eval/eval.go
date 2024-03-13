@@ -124,7 +124,12 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
+	biFn, ok := fn.(*object.Builtin) 
+  if ok {
+    return biFn.Fn(args...)
+  }
+
+  function, ok := fn.(*object.Function)
 
 	if !ok {
 		return newError("expected function, got %s", fn.Type())
@@ -338,7 +343,7 @@ var builtins = map[string]*object.Builtin{
   "len": {
     Fn: func(args ...object.Object) object.Object {
       if len(args) != 1 {
-        return newError("len expected %d args got %d\n", 1, len(args))
+        return newError("len expected %d args got %d", 1, len(args))
       }
 
       switch arg := args[0].(type) {
@@ -346,7 +351,7 @@ var builtins = map[string]*object.Builtin{
         l := len(arg.Value)
         return &object.Integer{Value: int64(l)}
       default:
-        return newError("len got invalid type: %s\n", args[0].Type())
+        return newError("len got invalid type: %s", args[0].Type())
       }
     },
   },
