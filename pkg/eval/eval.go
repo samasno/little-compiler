@@ -123,21 +123,17 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 	return args
 }
 
-func applyFunction(fn object.Object, args []object.Object) object.Object {
-	biFn, ok := fn.(*object.Builtin) 
-  if ok {
-    return biFn.Fn(args...)
+func applyFunction(fnObj object.Object, args []object.Object) object.Object {
+	var result object.Object
+
+  switch fn := fnObj.(type) {
+  case *object.Function:
+    extendedEnv := extendedFunctionEnv(fn, args)
+	  result = Eval(fn.Body, extendedEnv)
+  
+  case *object.Builtin:
+    result = fn.Fn(args...)
   }
-
-  function, ok := fn.(*object.Function)
-
-	if !ok {
-		return newError("expected function, got %s", fn.Type())
-	}
-
-	extendedEnv := extendedFunctionEnv(function, args)
-
-	result := Eval(function.Body, extendedEnv)
 
 	return unwrapEvaluatedReturn(result)
 }
