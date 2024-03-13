@@ -133,6 +133,8 @@ func applyFunction(fnObj object.Object, args []object.Object) object.Object {
   
   case *object.Builtin:
     result = fn.Fn(args...)
+  default:
+    return newError("not a function %s", fnObj.Type())
   }
 
 	return unwrapEvaluatedReturn(result)
