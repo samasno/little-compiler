@@ -130,6 +130,11 @@ type InfixExpression struct {
 	Right    Expression
 }
 
+type ArrayLiteral struct {
+  Token tokens.Token
+  Value []Expression
+}
+
 func (fl *FnLiteral) String() string {
 	var out bytes.Buffer
 	params := []string{}
@@ -153,6 +158,21 @@ func (rs *ReturnStatement) String() string {
 	}
 	out.WriteString(")")
 	return out.String()
+}
+
+func (a *ArrayLiteral) String() string {
+  els := []string{}
+  out := bytes.Buffer{}
+  
+  for _, exp := range a.Value {
+    els = append(els, exp.String())
+  }
+  joined := strings.Join(els, ", ")
+  out.WriteString("[")
+  out.WriteString(joined)
+  out.WriteString("]")
+
+  return out.String()
 }
 
 func (e *ExpressionStatement) String() string {
@@ -240,6 +260,8 @@ func (ix *InfixExpression) String() string {
 	return out.String()
 }
 
+func (a *ArrayLiteral) expressionNode() {}
+func (a *ArrayLiteral) TokenLiteral() tokens.Token { return a.Token }
 func (s *StringLiteral) expressionNode()            {}
 func (s *StringLiteral) String() string             { return s.Value }
 func (s *StringLiteral) TokenLiteral() string       { return s.Token.Literal }
