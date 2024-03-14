@@ -642,6 +642,16 @@ func TestParseCallExpression(t *testing.T) {
 	println(ce.String()) // call
 }
 
+func TestParsesArray(t *testing.T) {
+  input := `[1, "two", len("5")]` 
+  
+  l := lexer.NewLexer(input)
+  p := New(l)
+  program := p.ParseProgram()
+
+  stmt := 
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	for _, err := range p.errors {
 		t.Errorf(err)
