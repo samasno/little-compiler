@@ -132,7 +132,7 @@ type InfixExpression struct {
 
 type ArrayLiteral struct {
   Token tokens.Token
-  Value []Expression
+  Elements []Expression
 }
 
 func (fl *FnLiteral) String() string {
@@ -164,7 +164,7 @@ func (a *ArrayLiteral) String() string {
   els := []string{}
   out := bytes.Buffer{}
   
-  for _, exp := range a.Value {
+  for _, exp := range a.Elements {
     els = append(els, exp.String())
   }
   joined := strings.Join(els, ", ")
@@ -261,7 +261,7 @@ func (ix *InfixExpression) String() string {
 }
 
 func (a *ArrayLiteral) expressionNode() {}
-func (a *ArrayLiteral) TokenLiteral() tokens.Token { return a.Token }
+func (a *ArrayLiteral) TokenLiteral() string { return a.Token.Literal }
 func (s *StringLiteral) expressionNode()            {}
 func (s *StringLiteral) String() string             { return s.Value }
 func (s *StringLiteral) TokenLiteral() string       { return s.Token.Literal }
