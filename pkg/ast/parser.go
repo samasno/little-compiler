@@ -20,19 +20,10 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(p.parseIdentifier, tokens.IDENTIFIER)
 	p.registerPrefix(p.parseInteger, tokens.INTEGER)
 	p.registerPrefix(p.parseString, tokens.STRING)
-
-	p.registerPrefix(p.parseBoolean,
-		tokens.TRUE,
-		tokens.FALSE,
-	)
-
-	p.registerPrefix(p.parseIfExpression,
-		tokens.IF,
-	)
-
-	p.registerPrefix(p.parseFnLiteral,
-		tokens.FUNCTION,
-	)
+  p.registerPrefix(p.parseArray, tokens.LBRACKET)
+	p.registerPrefix(p.parseBoolean,tokens.TRUE,tokens.FALSE)
+	p.registerPrefix(p.parseIfExpression, tokens.IF)
+	p.registerPrefix(p.parseFnLiteral,tokens.FUNCTION)
 
 	p.registerInfix(p.parseInfixExpression,
 		tokens.ASSIGN,
@@ -381,6 +372,36 @@ func (p *Parser) parseFnLiteral() Expression {
 	}
 
 	return fn
+}
+
+func (p *Parser) parseArray() Expression {
+  array := &ArrayLiteral{Token:p.currentToken}
+  array.Elements = p.parseExpressionList(tokens.RBRACKET)
+  return array
+}
+
+func (p *Parser) parseExpressionList(end string) []Expression {
+  list := []Expression{}
+  
+  if p.peekIs(end) {
+    p.nextToken()
+    return list
+  }
+
+  p.nextToken()
+  list = append(list, p.parseExpression(LOWEST))
+
+  for p.peekIs(tokens.COMMA) {
+    p.nextToken()
+    p.nextToken()
+    list = append(list, p.parseExpression(LOWEST))
+  }
+
+  if !p.expectPeek(end) {
+    return nil
+  }
+
+  return list
 }
 
 func (p *Parser) parseFnParams() []*Identifier {
