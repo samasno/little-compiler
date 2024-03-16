@@ -649,7 +649,48 @@ func TestParsesArray(t *testing.T) {
   p := New(l)
   program := p.ParseProgram()
 
-  stmt := 
+  stmt, ok := program.Statements[0].(*ExpressionStatement)
+  if !ok {
+    t.Fatalf("expected exp statement got %s\n", reflect.TypeOf(program.Statements[0]).String())
+  }
+
+  arr, ok := stmt.Expression.(*ArrayLiteral)
+  if !ok {
+    t.Errorf("expected array literal got %s\n", reflect.TypeOf(stmt.Expression).String())
+  }
+
+  zero, ok := arr.Elements[0].(*IntegerLiteral)
+  if !ok {
+    t.Errorf("expected array literal got %s\n", reflect.TypeOf(stmt.Expression).String())
+  }
+
+  if zero.Value != 1 {
+    t.Errorf("input[0] expected one got %d\n", zero.Value)
+  }
+
+  one, ok := arr.Elements[1].(*StringLiteral)
+  if !ok {
+    t.Errorf("input[1] expected string got %s\n", reflect.TypeOf(arr.Elements[1]).String())
+  }
+
+  if one.Value != "two" {
+    t.Errorf("got wrong str value")
+  }
+
+  two, ok := arr.Elements[2].(*CallExpression)
+  if !ok {
+    t.Errorf("input[2] expected call got %s\n", reflect.TypeOf(arr.Elements[2]).String())
+  }
+
+
+  arg, ok := two.Arguments[0].(*StringLiteral)
+  if !ok {
+    t.Errorf("expected string call arg got %s\n", reflect.TypeOf(two.Arguments[0]).String())
+  }
+
+  if arg.Value != "5" {
+    t.Errorf("expected arg value '5' got %s\n", arg.Value)
+  }
 }
 
 func checkParserErrors(t *testing.T, p *Parser) {
