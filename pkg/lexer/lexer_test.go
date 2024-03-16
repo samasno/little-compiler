@@ -9,7 +9,7 @@ import (
 
 func TestNextTokenDelimiters(t *testing.T) {
 	input := `= +(){}:;,
-test
+test [1]
 `
 	expected := []tokens.Token{
 		{tokens.ASSIGN, tokens.ASSIGN},
@@ -21,8 +21,11 @@ test
 		{tokens.COLON, tokens.COLON},
 		{tokens.SEMICOLON, tokens.SEMICOLON},
 		{tokens.COMMA, tokens.COMMA},
-		{tokens.IDENTIFIER, "test"},
-		{tokens.EOF, tokens.EOF},
+		{tokens.IDENTIFIER, "test"},    
+    {tokens.LBRACKET, tokens.LBRACKET},
+    {tokens.INTEGER, "1"},
+    {tokens.RBRACKET, tokens.RBRACKET},
+    {tokens.EOF, tokens.EOF},
 	}
 
 	l := NewLexer(input)
