@@ -44,10 +44,10 @@ type Object interface {
 }
 
 type Builtin struct {
-  Fn BuiltinFunction
+	Fn BuiltinFunction
 }
 
-type BuiltinFunction func(args ...Object) Object 
+type BuiltinFunction func(args ...Object) Object
 
 type Integer struct {
 	Value int64
@@ -75,10 +75,31 @@ type Function struct {
 	Env    *Environment
 }
 
+type Array struct {
+	Elements []Object
+}
+
 type Null struct{}
 
-func (b *Builtin) Type() ObjectType{ return BUILTIN_OBJ }
-func (b *Builtin) Inspect() string { return "builtin function" }
+func (ao *Array) Type() ObjectType { return ARRAY_OBJ }
+func (ao *Array) Inspect() string {
+  var out bytes.Buffer
+  
+  elements := []string{}
+
+  for _, e := range ao.Elements {
+    elements = append(elements, e.Inspect())
+  }
+
+  out.WriteString("[")
+  out.WriteString(strings.Join(elements,","))
+  out.WriteString("]")
+
+  return out.String()
+}
+
+func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
+func (b *Builtin) Inspect() string  { return "builtin function" }
 
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
@@ -128,5 +149,6 @@ const (
 	ERROR_OBJ    = "ERROR"
 	FUNCTION_OBJ = "FUNCTION"
 	STRING_OBJ   = "STRING"
-  BUILTIN_OBJ = "BUILTIN"
+	BUILTIN_OBJ  = "BUILTIN"
+	ARRAY_OBJ    = "ARRAY"
 )
