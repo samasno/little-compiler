@@ -66,6 +66,30 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.BlockStatement:
 		return evalBlockStatement(node, env)
 
+  case *ast.ArrayLiteral:
+    elements := evalExpressions(node.Elements, env)
+
+    if len(elements) == 1 && isError(elements[0]) {
+      return elements[0]
+    }
+
+    return &object.Array{ Elements: elements }
+
+  case *ast.IndexExpression:
+    left := Eval(node.Left, env)
+
+    if isError(left) {
+      return left
+    }
+
+    index := Eval(node.Index, env)
+
+    if isError(index) {
+      return index
+    }
+
+    return evalIndexExpression(left, index)
+
 	case *ast.InfixExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -337,7 +361,114 @@ func evalMinusOperator(right object.Object) object.Object {
 	return &object.Integer{Value: -value}
 }
 
+func evalIndexExpression(left, index object.Object) object.Object {
+  switch {
+  case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+    return evalArrayIndexExpression(left, index)
+  default:
+    return newError("operator '%s' not supported for type '%s'", index.Type(), left.Type())
+  }
+}
+
+func evalArrayIndexExpression(array, index object.Object) object.Object {
+  arrayObj := array.(*object.Array)
+  i := index.(*object.Integer)
+  max := len(arrayObj.Elements)
+  
+  if i.Value > int64(max) {
+    return NULL
+  } 
+  
+  return arrayObj.Elements[i.Value]
+}
+
 var builtins = map[string]*object.Builtin{
+  "first": {
+    Fn:func(args ...object.Object)object.Object{
+      if len(args) != 1 {
+        return newError("'first' expected 1 arg got %d", len(args))
+      }
+      if args[0].Type() != object.ARRAY_OBJ {
+        return newError("'first' expected array got '%s'", args[0].Type())
+      }
+      array, _ := args[0].(*object.Array)
+      if len(array.Elements) == 0 {
+        return NULL
+      }
+      return array.Elements[0]
+    },
+  },
+
+  "last": {
+    Fn: func(args ...object.Object) object.Object {
+      if len(args) != 1 {
+        return newError("'last' expected 1 arg got %d", len(args))
+      }
+      if args[0].Type() != object.ARRAY_OBJ {
+        return newError("'last' expected array got '%s'", args[0].Type())
+      }
+      array, _ := args[0].(*object.Array)
+      if len(array.Elements) == 0 {
+        return NULL
+      }
+      
+      return array.Elements[len(array.Elements) - 1]
+    },
+  },
+
+  "rest": {
+    Fn: func(args ...object.Object) object.Object {
+      if len(args) != 1 {
+        return newError("'rest' expected 1 arg got %d", len(args))
+      }
+      if args[0].Type() != object.ARRAY_OBJ {
+        return newError("'rest' expected array got '%s'", args[0].Type())
+      }
+      array, _ := args[0].(*object.Array)
+      if len(array.Elements) == 0 {
+        return NULL
+      }
+      
+      length := len(array.Elements)
+
+      if length > 0 {
+        newElements := make([]object.Object, length-1, length-1)
+        
+        copy(newElements, array.Elements[1:length])
+      
+        return &object.Array{Elements: newElements}
+      }
+
+      return NULL
+    },
+  },
+
+  "push": {
+    Fn: func(args ...object.Object) object.Object {
+      if len(args) < 2 {
+        return newError("'push' expected 1 arg got %d", len(args))
+      }
+
+      if args[0].Type() != object.ARRAY_OBJ {
+        return newError("'push' expected array got '%s'", args[0].Type())
+      }
+
+      array, _ := args[0].(*object.Array)
+      
+      if len(array.Elements) == 0 {
+        return NULL
+      }
+
+      l := len(array.Elements)
+      
+      newArray := make([]object.Object,l)  
+
+      copy(newArray, array.Elements)
+
+      return &object.Array{Elements: append(newArray, args[1:]...)}
+    },
+  },
+
   "len": {
     Fn: func(args ...object.Object) object.Object {
       if len(args) != 1 {
@@ -348,6 +479,9 @@ var builtins = map[string]*object.Builtin{
       case *object.String:
         l := len(arg.Value)
         return &object.Integer{Value: int64(l)}
+      case *object.Array:
+        l := len(arg.Elements)
+        return &object.Integer{Value:int64(l)}
       default:
         return newError("len got invalid type: %s", args[0].Type())
       }
