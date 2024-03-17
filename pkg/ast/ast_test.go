@@ -510,6 +510,7 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"3 < 5 == true",
 			"((3 < 5) == true)",
 		},
+    {`a * [1,2,3][b * c] * d`, `((a * ([1, 2, 3][(b * c)])) * d)`},
 	}
 
 	for _, tt := range tests {
@@ -690,6 +691,38 @@ func TestParsesArray(t *testing.T) {
 
   if arg.Value != "5" {
     t.Errorf("expected arg value '5' got %s\n", arg.Value)
+  }
+}
+
+func TestParseIndexExpression(t *testing.T) {
+  input := "arr[1]"
+  l := lexer.NewLexer(input)
+  p := New(l)
+  pr := p.ParseProgram()
+
+  stmt, ok := pr.Statements[0].(*ExpressionStatement)
+  
+  ie, ok := stmt.Expression.(*IndexExpression)
+  if !ok {
+    t.Errorf("expected index expression got %s\n", reflect.TypeOf(stmt))
+  }
+
+  ident, ok := ie.Left.(*Identifier)
+  if !ok {
+    t.Errorf("didn't get identifier got %s\n", reflect.TypeOf(ie.Left))
+  }
+
+  if ident.Value != "arr" {
+    t.Errorf("expected name 'arr' got '%s'\n", ident.Value)
+  }
+
+  i, ok := ie.Index.(*IntegerLiteral)
+  if !ok {
+    t.Errorf("expected int index got %s\n", reflect.TypeOf(ie.Index))
+  }
+
+  if i.Value != 1 {
+    t.Errorf("expected index value of 1 got %d\n", i.Value)
   }
 }
 
