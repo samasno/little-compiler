@@ -231,6 +231,7 @@ func TestBuiltinFunction(t *testing.T) {
     {`len("hello world")`, 11},
     {`len(1)`, "len got invalid type: INTEGER"},
     {`len("one", "two")`, "len expected 1 args got 2"},
+    {`len([1,2,3])`, 3},
   }
 
   for _, tt := range tests {
@@ -282,6 +283,9 @@ func TestEvalIndex(t *testing.T) {
     {`[1,1 + 1][1]`, 2},
     {`let i = 0;[0][i]`, 0},
     {`let arr = [6,5,4][1]`, 5},
+    {`let arr = [0][2]`, nil},
+    {`let arr = [5,2];first(arr)`, 5},
+    {`last([1,2,3])`, 3},
   }
 
   for _, tt := range tests {
@@ -292,6 +296,27 @@ func TestEvalIndex(t *testing.T) {
     } else {
       testIsNull(t, evaluated)
     }
+  }
+}
+
+func TestEvalPush(t *testing.T) {
+  input := `push([1,2,3], 4, 5);`
+  evaluated := testEval(input)
+  array, ok := evaluated.(*object.Array)
+  if !ok {
+    t.Errorf("expected array got %s\n", reflect.TypeOf(evaluated).String())
+  }
+
+  println("got array")
+  
+  if len(array.Elements) != 5 {
+    t.Errorf("expected 5 elements got %d\n", len(array.Elements))
+  }
+
+  println("got len")
+
+  for i, e := range array.Elements {
+    testIntegerObject(t, e, int64(i+1))
   }
 }
 
