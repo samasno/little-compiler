@@ -16,6 +16,7 @@ func New(l *lexer.Lexer) *Parser {
 		infixPrecedence: make(map[string]int),
 	}
 
+  p.registerPrefix(p.parseHash, tokens.LBRACE)
 	p.registerPrefix(p.parseGroupedExpression, tokens.LPAREN)
 	p.registerPrefix(p.parseIdentifier, tokens.IDENTIFIER)
 	p.registerPrefix(p.parseInteger, tokens.INTEGER)
@@ -178,11 +179,11 @@ func (p *Parser) parseExpressionStatement() Statement {
 }
 
 func (p *Parser) parseExpression(precedence int) Expression {
-	prefix, ok := p.prefixParseFn[p.currentToken.Type]
+	println("in parse expression", p.currentToken.Literal)
+  prefix, ok := p.prefixParseFn[p.currentToken.Type]
 	if !ok {
 		log.Fatalf("no parsing function found for %s\n", p.currentToken.Type)
 	}
-
 	lexp := prefix()
 
 	for !p.peekIs(tokens.SEMICOLON) && precedence < p.peekPrecedence() {
@@ -275,8 +276,9 @@ func (p *Parser) parseIdentifier() Expression {
 }
 
 func (p *Parser) parsePrefixExpression() Expression {
-	px := &PrefixExpression{Token: p.currentToken, Operator: p.currentToken.Literal}
-
+	println("in prefix", p.currentToken.Literal)
+  px := &PrefixExpression{Token: p.currentToken, Operator: p.currentToken.Literal}
+  println(p.currentToken      .Literal)
 	p.nextToken()
 
 	px.Right = p.parseExpression(PREFIX)
@@ -474,6 +476,36 @@ func (p *Parser) parseCallArguments() []Expression {
 	p.expectPeek(tokens.RPAREN)
 
 	return args
+}
+
+func (p *Parser) parseHash() Expression {
+  println("parsing hash here")
+  hash := &HashLiteral{Token:p.currentToken, Pairs: map[Expression]Expression{}}
+
+  for !p.peekIs(tokens.RBRACE) {
+    p.nextToken()
+    println(p.currentToken.Literal)
+    key:= p.parseExpression(LOWEST)
+    
+    p.expectPeek(tokens.COLON)
+    
+    p.nextToken()
+
+    value := p.parseExpression(LOWEST)
+
+    hash.Pairs[key] = value
+
+    if !p.peekIs(tokens.RBRACE) && !p.expectPeek(tokens.COMMA) {
+      return nil
+    }
+
+  }
+
+  if !p.expectPeek(tokens.RBRACE) {
+    return nil
+  }
+
+  return hash
 }
 
 func (p *Parser) parseIndexExpression(left Expression) Expression {
