@@ -253,6 +253,48 @@ func TestBuiltinFunction(t *testing.T) {
   }
 }
 
+func TestArrayLiterals(t *testing.T) {
+  input := `[1,2,3,4,5]`
+
+  evaluated := testEval(input)
+  
+  result, ok := evaluated.(*object.Array)
+  if !ok {
+    t.Errorf("expected array got %s\n", evaluated.Type())
+  }
+
+  if len(result.Elements) != 5 {
+    t.Errorf("expected 5 elements got %d\n", len(result.Elements))
+  }
+
+  for i := 0; i < 5; i++{
+    testIntegerObject(t, result.Elements[i], int64(i+1))
+  }
+
+}
+
+func TestEvalIndex(t *testing.T) {
+  tests := []struct {
+    input string
+    expected interface{}
+  } {
+    {`[1,2,3][0]`, 1},
+    {`[1,1 + 1][1]`, 2},
+    {`let i = 0;[0][i]`, 0},
+    {`let arr = [6,5,4][1]`, 5},
+  }
+
+  for _, tt := range tests {
+    evaluated := testEval(tt.input)
+    integer, ok := tt.expected.(int)
+    if ok {
+      testIntegerObject(t, evaluated, int64(integer))
+    } else {
+      testIsNull(t, evaluated)
+    }
+  }
+}
+
 func unwrapReturn(obj object.Object) object.Object {
 	r, ok := obj.(*object.Return)
 	if !ok {
