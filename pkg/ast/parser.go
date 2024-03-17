@@ -23,7 +23,7 @@ func New(l *lexer.Lexer) *Parser {
   p.registerPrefix(p.parseArray, tokens.LBRACKET)
 	p.registerPrefix(p.parseBoolean,tokens.TRUE,tokens.FALSE)
 	p.registerPrefix(p.parseIfExpression, tokens.IF)
-	p.registerPrefix(p.parseFnLiteral,tokens.FUNCTION)
+	p.registerPrefix(p.parseFnLiteral,tokens.FUNCTION)  
 
 	p.registerInfix(p.parseInfixExpression,
 		tokens.ASSIGN,
@@ -40,6 +40,8 @@ func New(l *lexer.Lexer) *Parser {
 		tokens.EQUALTO,
 	)
 
+  p.registerInfix(p.parseIndexExpression, tokens.LBRACKET)
+
 	p.registerInfix(p.parseCallExpression,
 		tokens.LPAREN,
 	)
@@ -55,6 +57,8 @@ func New(l *lexer.Lexer) *Parser {
 		tokens.PLUS,
 		tokens.MINUS,
 	)
+
+  p.registerInfixPrecedence(INDEX, tokens.LBRACKET)
 
 	p.registerInfixPrecedence(PRODUCT,
 		tokens.MULTIPLY,
@@ -472,6 +476,18 @@ func (p *Parser) parseCallArguments() []Expression {
 	return args
 }
 
+func (p *Parser) parseIndexExpression(left Expression) Expression {
+  exp := &IndexExpression{Token: p.currentToken, Left: left}
+
+  p.nextToken()
+  exp.Index = p.parseExpression(LOWEST)
+  if !p.expectPeek(tokens.RBRACKET) {
+    return nil
+  }
+
+  return exp
+}
+
 const (
 	_ int = iota
 	LOWEST
@@ -481,4 +497,5 @@ const (
 	PRODUCT
 	PREFIX
 	CALL
+  INDEX
 )
