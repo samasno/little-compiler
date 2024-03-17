@@ -135,6 +135,12 @@ type ArrayLiteral struct {
   Elements []Expression
 }
 
+type IndexExpression struct {
+  Token tokens.Token
+  Left Expression
+  Index Expression
+}
+
 func (fl *FnLiteral) String() string {
 	var out bytes.Buffer
 	params := []string{}
@@ -147,6 +153,16 @@ func (fl *FnLiteral) String() string {
 		out.WriteString(fl.Body.String())
 	}
 	return out.String()
+}
+
+func (ie *IndexExpression) String() string {
+  var out bytes.Buffer
+  out.WriteString("(")
+  out.WriteString(ie.Left.String())
+  out.WriteString("[")
+  out.WriteString(ie.Index.String())
+  out.WriteString("])")
+  return out.String()
 }
 
 func (rs *ReturnStatement) String() string {
@@ -260,6 +276,8 @@ func (ix *InfixExpression) String() string {
 	return out.String()
 }
 
+func (ie *IndexExpression) expressionNode() {}
+func (ie *IndexExpression) TokenLiteral() string { return ie.Token.Literal }
 func (a *ArrayLiteral) expressionNode() {}
 func (a *ArrayLiteral) TokenLiteral() string { return a.Token.Literal }
 func (s *StringLiteral) expressionNode()            {}
