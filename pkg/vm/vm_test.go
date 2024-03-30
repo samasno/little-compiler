@@ -8,14 +8,14 @@ import (
 	"github.com/samasno/little-compiler/pkg/frontend/ast"
 	"github.com/samasno/little-compiler/pkg/frontend/lexer"
 	"github.com/samasno/little-compiler/pkg/frontend/parser"
-	"github.com/samasno/little-compiler/pkg/object"
+	"github.com/samasno/little-compiler/pkg/frontend/object"
 )
 
 func TestIntegerArithmetic(t *testing.T) {
   tests := []vmTestCase{
     {"1", 1},
     {"2", 2}, 
-    {"1+2", 2},
+    {"1+2", 3},
   }
 
   runVmTests(t, tests)
