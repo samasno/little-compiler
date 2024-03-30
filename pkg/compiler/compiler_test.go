@@ -1,120 +1,121 @@
 package compiler
 
 import (
-  "github.com/samasno/little-compiler/pkg/code"
-  "github.com/samasno/little-compiler/pkg/frontend/ast"
-  "github.com/samasno/little-compiler/pkg/frontend/lexer"
-  "github.com/samasno/little-compiler/pkg/frontend/parser"
-  "github.com/samasno/little-compiler/pkg/frontend/object"
-  "fmt"
-  "testing"
+	"fmt"
+	"testing"
+
+	"github.com/samasno/little-compiler/pkg/code"
+	"github.com/samasno/little-compiler/pkg/frontend/ast"
+	"github.com/samasno/little-compiler/pkg/frontend/lexer"
+	"github.com/samasno/little-compiler/pkg/frontend/object"
+	"github.com/samasno/little-compiler/pkg/frontend/parser"
 )
 
 type compilerTestCase struct {
-  input string
-  expectedConstants []interface{}
-  expectedInstructions []code.Instructions
+	input                string
+	expectedConstants    []interface{}
+	expectedInstructions []code.Instructions
 }
 
 func TestIntegerArithmetic(t *testing.T) {
-  tests := []compilerTestCase {
-    {
-      input: `1 + 2`,
-      expectedConstants: []interface{}{1,2},
-      expectedInstructions: []code.Instructions{
-        code.Make(code.OpConstant, 0),
-        code.Make(code.OpConstant, 1),
-      },
-    },
-  }
+	tests := []compilerTestCase{
+		{
+			input:             `1 + 2`,
+			expectedConstants: []interface{}{1, 2},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+			},
+		},
+	}
 
-  runCompilerTests(t, tests)
+	runCompilerTests(t, tests)
 }
 
 func runCompilerTests(t *testing.T, tests []compilerTestCase) {
-  t.Helper()
-  for _, tt := range tests {
-    program := parse(tt.input)
-    compiler := New()
-    
-    err := compiler.Compile(program)
-    if err != nil {
-      t.Fatalf("compiler error: %s\n", err)
-    }
-    
-    bytecode := compiler.Bytecode()
+	t.Helper()
+	for _, tt := range tests {
+		program := parse(tt.input)
+		compiler := New()
 
-    err = testInstructions(tt.expectedInstructions, bytecode.Instructions)
-    if err != nil {
-      t.Fatalf("testInstructions failed: %s\n", err)
-    }
+		err := compiler.Compile(program)
+		if err != nil {
+			t.Fatalf("compiler error: %s\n", err)
+		}
 
-    err = testConstants(t, tt.expectedConstants, bytecode.Constants)
-    if err != nil {
-      t.Fatalf("testConstants failed: %s\n", err)
-    }
-  }
+		bytecode := compiler.Bytecode()
+
+		err = testInstructions(tt.expectedInstructions, bytecode.Instructions)
+		if err != nil {
+			t.Fatalf("testInstructions failed: %s\n", err)
+		}
+
+		err = testConstants(t, tt.expectedConstants, bytecode.Constants)
+		if err != nil {
+			t.Fatalf("testConstants failed: %s\n", err)
+		}
+	}
 }
 
 func parse(input string) *ast.Program {
-  l := lexer.New(input)
-  p := parser.New(l)
-  return p.ParseProgram()
+	l := lexer.New(input)
+	p := parser.New(l)
+	return p.ParseProgram()
 }
 
 func testInstructions(expected []code.Instructions, actual code.Instructions) error {
-  concatted := concatInstructions(expected)
-  if len(actual) != len(expected) {
-    return fmt.Errorf("wrong instructions length. \nwant %q\ngot %q", concatted, actual)
-  }
+	concatted := concatInstructions(expected)
+	if len(concatted) != len(actual) {
+		return fmt.Errorf("wrong instructions length. \nwant %d\ngot %d", len(concatted), len(actual))
+	}
 
-  for i, ins := range concatted {
-    if actual[i] != ins {
-      return fmt.Errorf("wrong instructions at %d\nwant %q\nwant %q\n", i, ins, actual)
-    }
-  }
+	for i, ins := range concatted {
+		if actual[i] != ins {
+			return fmt.Errorf("wrong instructions at %d\nwant %q\nwant %q\n", i, ins, actual)
+		}
+	}
 
-  return nil
+	return nil
 }
 
-func testConstants(t *testing.T,expected []interface{}, actual []object.Object) error {
-  
-  if len(expected) != len(actual) {
-    return fmt.Errorf("wrong number of constants\nwant %q\ngot %q", len(expected), len(actual))
-  }
+func testConstants(t *testing.T, expected []interface{}, actual []object.Object) error {
 
-  for i, constant := range expected {
-    switch constant := constant.(type) {
-    case int:
-      err := testIntegerObject(int64(constant), actual[i])
-      if err != nil {
-        return fmt.Errorf("constant %d - testIntegerObject failed: %s", i, err)
-      }
-    }
-  }
+	if len(expected) != len(actual) {
+		return fmt.Errorf("wrong number of constants\nwant %q\ngot %q", len(expected), len(actual))
+	}
 
-  return nil
+	for i, constant := range expected {
+		switch constant := constant.(type) {
+		case int:
+			err := testIntegerObject(int64(constant), actual[i])
+			if err != nil {
+				return fmt.Errorf("constant %d - testIntegerObject failed: %s", i, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func testIntegerObject(expected int64, actual object.Object) error {
-  result, ok := actual.(*object.Integer)
-  if !ok {
-    return fmt.Errorf("object is not Integer. got %T (%+v)", actual, actual)
-  }
+	result, ok := actual.(*object.Integer)
+	if !ok {
+		return fmt.Errorf("object is not Integer. got %T (%+v)", actual, actual)
+	}
 
-  if result.Value != expected {
-    return fmt.Errorf("object has wrong value. got %d want %d", result.Value, expected)
-  }
-  
-  return nil
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value. got %d want %d", result.Value, expected)
+	}
+
+	return nil
 }
 
 func concatInstructions(s []code.Instructions) code.Instructions {
-  out := code.Instructions{}
+	out := code.Instructions{}
 
-  for _, ins := range s {
-    out = append(out, ins...)
-  }
+	for _, ins := range s {
+		out = append(out, ins...)
+	}
 
-  return out
+	return out
 }
