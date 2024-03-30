@@ -25,6 +25,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
+        code.Make(code.OpAdd),
 			},
 		},
 	}
@@ -66,12 +67,12 @@ func parse(input string) *ast.Program {
 func testInstructions(expected []code.Instructions, actual code.Instructions) error {
 	concatted := concatInstructions(expected)
 	if len(concatted) != len(actual) {
-		return fmt.Errorf("wrong instructions length. \nwant %d\ngot %d", len(concatted), len(actual))
+		return fmt.Errorf("wrong instructions length. \nwant %q\ngot %q", concatted.String(), actual.String())
 	}
 
 	for i, ins := range concatted {
 		if actual[i] != ins {
-			return fmt.Errorf("wrong instructions at %d\nwant %q\nwant %q\n", i, ins, actual)
+			return fmt.Errorf("wrong instructions at %d\nwant %q\nwant %q\n", i, concatted.String(), actual.String())
 		}
 	}
 
@@ -79,7 +80,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 }
 
 func testConstants(t *testing.T, expected []interface{}, actual []object.Object) error {
-
+  t.Helper()
 	if len(expected) != len(actual) {
 		return fmt.Errorf("wrong number of constants\nwant %q\ngot %q", len(expected), len(actual))
 	}
