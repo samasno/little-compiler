@@ -2,14 +2,15 @@ package repl
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/samasno/little-compiler/pkg/ast"
-	"github.com/samasno/little-compiler/pkg/eval"
-	"github.com/samasno/little-compiler/pkg/lexer"
-	"github.com/samasno/little-compiler/pkg/object"
+	"github.com/samasno/little-compiler/pkg/compiler"
+	"github.com/samasno/little-compiler/pkg/frontend/lexer"
+	"github.com/samasno/little-compiler/pkg/frontend/parser"
+	"github.com/samasno/little-compiler/pkg/vm"
 )
 
 // need to add error handling to lexer and parser
@@ -18,7 +19,6 @@ func Run() {
   println("Starting repl for little-compiler")
 	scanner := bufio.NewScanner(os.Stdin)
   io.WriteString(os.Stdout, ">>")
-  env := object.NewEnvironment()
 outer:
 	for {
 	inner:
@@ -30,10 +30,20 @@ outer:
 				println("received quit command")
 				break outer
 			default:
-				l := lexer.NewLexer(text)
-        p := ast.New(l)
+				l := lexer.New(text)
+        p := parser.New(l)
         prg := p.ParseProgram()
-        o := eval.Eval(prg, env)
+        comp := compiler.New()
+
+        err := comp.Compile(prg)
+        if err != nil {
+          fmt.Fprintf(os.Stdout, "Failed to compile: \n%s\n", err)
+          continue
+        }
+
+        machine := vm.New(comp.Bytecode())
+        machine.Run()
+        o := machine.StackTop()
         io.WriteString(os.Stdout, o.Inspect())
         io.WriteString(os.Stdout, "\n>>")
 				break inner
