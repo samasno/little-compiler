@@ -36,9 +36,10 @@ func TestInstructionString(t *testing.T) {
     Make(OpConstant, 2),
     Make(OpConstant, 65535),
     Make(OpAdd),
+    Make(OpPop),
   }
 
-  expected := "0000 OpConstant 1\n0003 OpConstant 2\n0006 OpConstant 65535\n0009 OpAdd\n" 
+  expected := "0000 OpConstant 1\n0003 OpConstant 2\n0006 OpConstant 65535\n0009 OpAdd\n0010 OpPop\n" 
   concatted := Instructions{}
 
   for _, ins := range instructions {
