@@ -43,7 +43,7 @@ outer:
 
         machine := vm.New(comp.Bytecode())
         machine.Run()
-        o := machine.StackTop()
+        o := machine.LastPoppedStackElement()
         io.WriteString(os.Stdout, o.Inspect())
         io.WriteString(os.Stdout, "\n>>")
 				break inner

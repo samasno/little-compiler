@@ -49,6 +49,9 @@ func (vm *VM) Run() error {
         left := leftObject.(*object.Integer).Value
  
         vm.push(&object.Integer{Value: right + left})
+
+      case code.OpPop:
+        vm.pop()
     }
   }
 
@@ -72,6 +75,10 @@ func (vm *VM) StackTop() object.Object {
   }
 
   return vm.stack[vm.sp-1]
+}
+
+func (vm *VM) LastPoppedStackElement() object.Object {
+  return vm.stack[vm.sp]
 }
 
 func (vm *VM) pop() object.Object {
