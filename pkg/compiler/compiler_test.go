@@ -25,8 +25,8 @@ func TestIntegerArithmetic(t *testing.T) {
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
-        code.Make(code.OpAdd),
-        code.Make(code.OpPop),
+				code.Make(code.OpAdd),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -34,42 +34,52 @@ func TestIntegerArithmetic(t *testing.T) {
 			expectedConstants: []interface{}{1, 2},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
-        code.Make(code.OpPop),
+				code.Make(code.OpPop),
 				code.Make(code.OpConstant, 1),
-        code.Make(code.OpPop),
+				code.Make(code.OpPop),
 			},
 		},
-    {
-      input: `1 - 2`,
-      expectedConstants: []interface{}{1,2},
-      expectedInstructions: []code.Instructions{
-        code.Make(code.OpConstant, 0),
-        code.Make(code.OpConstant, 1),
-        code.Make(code.OpSub),
-        code.Make(code.OpPop),
-      },
-    },
-    {
-      input: `1 * 2`,
-      expectedConstants: []interface{}{1,2},
-      expectedInstructions: []code.Instructions{
-        code.Make(code.OpConstant, 0),
-        code.Make(code.OpConstant, 1),
-        code.Make(code.OpMul),
-        code.Make(code.OpPop),
-      },
-    },
-    {
-      input: `1 / 2`,
-      expectedConstants: []interface{}{1,2},
-      expectedInstructions: []code.Instructions{
-        code.Make(code.OpConstant, 0),
-        code.Make(code.OpConstant, 1),
-        code.Make(code.OpDiv),
-        code.Make(code.OpPop),
-      },
-    },
-  }
+		{
+			input:             `1 - 3`,
+			expectedConstants: []interface{}{1, 3},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSub),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             `2 * 2`,
+			expectedConstants: []interface{}{2, 2},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpMul),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             `3 / 9`,
+			expectedConstants: []interface{}{3, 9},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpDiv),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             `true;false;`,
+			expectedConstants: []interface{}{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpPop),
+				code.Make(code.OpFalse),
+				code.Make(code.OpPop),
+			},
+		},
+	}
 
 	runCompilerTests(t, tests)
 }
@@ -113,7 +123,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 
 	for i, ins := range concatted {
 		if actual[i] != ins {
-			return fmt.Errorf("wrong instructions at %d\nwant %q\nwant %q\n", i, concatted.String(), actual.String())
+			return fmt.Errorf("wrong instructions at %d\nwant %q\ngot %q\n", i, concatted.String(), actual.String())
 		}
 	}
 
@@ -121,7 +131,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 }
 
 func testConstants(t *testing.T, expected []interface{}, actual []object.Object) error {
-  t.Helper()
+	t.Helper()
 	if len(expected) != len(actual) {
 		return fmt.Errorf("wrong number of constants\nwant %q\ngot %q", len(expected), len(actual))
 	}

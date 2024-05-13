@@ -8,107 +8,134 @@ import (
 	"github.com/samasno/little-compiler/pkg/frontend/object"
 )
 
-
 const StackSize = 2048
 
+var True = &object.Boolean{Value: true}
+var False = &object.Boolean{Value: false}
+
 type VM struct {
-  constants []object.Object
-  instructions code.Instructions
-  stack []object.Object
-  sp int
+	constants    []object.Object
+	instructions code.Instructions
+	stack        []object.Object
+	sp           int
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
-  return &VM{
-    instructions:bytecode.Instructions,
-    constants:bytecode.Constants,
-    stack:make([]object.Object, StackSize),
-    sp:0,
-  }
+	return &VM{
+		instructions: bytecode.Instructions,
+		constants:    bytecode.Constants,
+		stack:        make([]object.Object, StackSize),
+		sp:           0,
+	}
 }
 
 func (vm *VM) Run() error {
-  for ip:= 0; ip < len(vm.instructions); ip++ {
-    op := code.Opcode(vm.instructions[ip])
+	for ip := 0; ip < len(vm.instructions); ip++ {
+		op := code.Opcode(vm.instructions[ip])
 
-    switch(op) {
-      case code.OpConstant:
-        constIndex := code.ReadUint16(vm.instructions[ip+1:])
-        ip+=2
+		switch op {
+		case code.OpConstant:
+			constIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
 
-        err := vm.push(vm.constants[constIndex])
-        if err != nil {
-          return err
-        }
+			err := vm.push(vm.constants[constIndex])
+			if err != nil {
+				return err
+			}
 
-      case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
-        vm.executeBinaryOperation(op)
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
+			err := vm.executeBinaryOperation(op)
 
-      case code.OpPop:
-        vm.pop()
-    }
-  }
+			if err != nil {
+				return err
+			}
 
-  return nil
+		case code.OpPop:
+			vm.pop()
+
+		case code.OpTrue:
+			err := vm.push(True)
+			if err != nil {
+				return err
+			}
+
+		case code.OpFalse:
+			err := vm.push(False)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+
+	return nil
 }
 
 func (vm *VM) executeBinaryOperation(op code.Opcode) error {
-  right := vm.pop()
-  left := vm.pop()
+	right := vm.pop()
+	left := vm.pop()
 
-  switch {
-    case right.Type() == object.INTEGER_OBJ && left.Type() == object.INTEGER_OBJ:
-      return vm.executeBinaryIntegerOperation(op, left, right)
-    default:
-      return fmt.Errorf("invalid object types for binary operation: %s & %s", left.Type(), right.Type())
-  }
+	leftType := left.Type()
+	rightType := right.Type()
+
+	switch {
+	case leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ:
+		return vm.executeBinaryIntegerOperation(op, left, right)
+	}
+
+	return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
 }
 
 func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.Object) error {
-  l,_ := left.(*object.Integer)
-  r,_ := right.(*object.Integer)
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
 
-  var result int64
-  switch op {
-  case code.OpAdd:
-    result = l.Value + r.Value
-  case code.OpSub:
-    result = l.Value - r.Value
-  case code.OpMul:
-    result = l.Value * r.Value
-  case code.OpDiv:
-    result = l.Value / r.Value
-  }
+	var result int64
 
-  return vm.push(&object.Integer{Value: result})
+	switch op {
+	case code.OpAdd:
+		result = leftValue + rightValue
+	case code.OpSub:
+		result = leftValue - rightValue
+	case code.OpMul:
+		result = leftValue * rightValue
+	case code.OpDiv:
+		result = leftValue / rightValue
+	default:
+		return fmt.Errorf("unsupported integer operation: %d", op)
+	}
+
+	vm.push(&object.Integer{Value: result})
+
+	return nil
 }
 
 func (vm *VM) push(o object.Object) error {
-  if vm.sp >= StackSize {
-    return fmt.Errorf("stack overflow")
-  }
+	if vm.sp >= StackSize {
+		return fmt.Errorf("stack overflow")
+	}
 
-  vm.stack[vm.sp] = o
-  vm.sp++
+	vm.stack[vm.sp] = o
+	vm.sp++
 
-  return nil
+	return nil
 }
 
 func (vm *VM) StackTop() object.Object {
-  if vm.sp == 0 {
-    return nil
-  }
+	if vm.sp == 0 {
+		return nil
+	}
 
-  return vm.stack[vm.sp-1]
+	return vm.stack[vm.sp-1]
 }
 
 func (vm *VM) LastPoppedStackElement() object.Object {
-  return vm.stack[vm.sp]
+	return vm.stack[vm.sp]
 }
 
 func (vm *VM) pop() object.Object {
-  o := vm.stack[vm.sp-1]
-  vm.sp--
+	o := vm.stack[vm.sp-1]
+	vm.sp--
 
-  return o
+	return o
 }

@@ -35,7 +35,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
-    c.emit(code.OpPop)
+		c.emit(code.OpPop)
 
 	case *ast.InfixExpression:
 		err := c.Compile(node.Left)
@@ -48,18 +48,26 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-    switch node.Operator {
-    case `+`:
-      c.emit(code.OpAdd)
-    case `-`:
-      c.emit(code.OpSub)
-    case `*`:
-      c.emit(code.OpMul)
-    case `/`:
-      c.emit(code.OpDiv)
-    default:
-      return fmt.Errorf("unknown operator: %s", node.Operator)
-    }
+		switch node.Operator {
+		case `+`:
+			c.emit(code.OpAdd)
+		case `-`:
+			c.emit(code.OpSub)
+		case `/`:
+			c.emit(code.OpDiv)
+		case `*`:
+			c.emit(code.OpMul)
+		default:
+			return fmt.Errorf("unknown operator: %s", node.Operator)
+
+		}
+
+	case *ast.Boolean:
+		if node.Value {
+			c.emit(code.OpTrue)
+		} else {
+			c.emit(code.OpFalse)
+		}
 
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
@@ -92,6 +100,7 @@ func (c *Compiler) Bytecode() *Bytecode {
 		Constants:    c.constants,
 	}
 }
+
 type Bytecode struct {
 	Instructions code.Instructions
 	Constants    []object.Object
