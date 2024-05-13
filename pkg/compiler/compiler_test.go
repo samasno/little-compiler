@@ -69,6 +69,16 @@ func TestIntegerArithmetic(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input:             `true;false;`,
+			expectedConstants: []interface{}{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpPop),
+				code.Make(code.OpFalse),
+				code.Make(code.OpPop),
+			},
+		},
 	}
 
 	runCompilerTests(t, tests)
@@ -113,7 +123,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 
 	for i, ins := range concatted {
 		if actual[i] != ins {
-			return fmt.Errorf("wrong instructions at %d\nwant %q\nwant %q\n", i, concatted.String(), actual.String())
+			return fmt.Errorf("wrong instructions at %d\nwant %q\ngot %q\n", i, concatted.String(), actual.String())
 		}
 	}
 
