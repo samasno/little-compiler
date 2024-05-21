@@ -29,6 +29,18 @@ func TestBooleanExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{"true", true},
 		{"false", false},
+		{"true == true", true},
+		{"false == false", true},
+		{"false != true", true},
+		{"true != false", true},
+		{"10 < 100", true},
+		{"100 < 10", false},
+		{"100 > 10", true},
+		{"10 > 100", false},
+		{"10 != 100", true}, //break
+		{"10 == 10", true},
+		{"(1 > 2) == true", false},
+		{"(1 > 2) == false", true},
 	}
 
 	runVmTests(t, tests)
@@ -80,9 +92,7 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 		}
 
 		stackElem := vm.LastPoppedStackElement()
-
 		testExpectedObject(t, tt.expected, stackElem)
-
 	}
 }
 
@@ -99,7 +109,7 @@ func testIntegerObject(expected int64, actual object.Object) error {
 	}
 
 	if result.Value != expected {
-		return fmt.Errorf("object has wrong value. got %d want %d", result.Value, expected)
+		return fmt.Errorf("object has wrong value. want %d got %d", result.Value, expected)
 	}
 
 	return nil

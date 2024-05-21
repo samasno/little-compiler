@@ -32,7 +32,7 @@ func New(bytecode *compiler.Bytecode) *VM {
 func (vm *VM) Run() error {
 	for ip := 0; ip < len(vm.instructions); ip++ {
 		op := code.Opcode(vm.instructions[ip])
-
+		println(op)
 		switch op {
 		case code.OpConstant:
 			constIndex := code.ReadUint16(vm.instructions[ip+1:])
@@ -61,6 +61,12 @@ func (vm *VM) Run() error {
 
 		case code.OpFalse:
 			err := vm.push(False)
+			if err != nil {
+				return err
+			}
+
+		case code.OpGreaterThan, code.OpEqual, code.OpNotEqual:
+			err := vm.executeComparison(op)
 			if err != nil {
 				return err
 			}
@@ -108,6 +114,49 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.O
 	vm.push(&object.Integer{Value: result})
 
 	return nil
+}
+
+func (vm *VM) executeComparison(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		return vm.executeIntegerComparison(op, left, right)
+	}
+
+	switch op {
+	case code.OpEqual:
+		return vm.push(nativeBoolToBooleanObject(right == left))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToBooleanObject(right != left))
+	default:
+		return fmt.Errorf("unsupported comparison operator: %d", op)
+	}
+}
+
+func (vm *VM) executeIntegerComparison(op code.Opcode, left, right object.Object) error {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	switch op {
+	case code.OpEqual:
+		return vm.push(nativeBoolToBooleanObject(leftValue == rightValue))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToBooleanObject(leftValue != rightValue))
+	case code.OpGreaterThan:
+		return vm.push(nativeBoolToBooleanObject(leftValue > rightValue))
+
+	default:
+		return fmt.Errorf("unknown operator: %d", op)
+	}
+}
+
+func nativeBoolToBooleanObject(input bool) *object.Boolean {
+	if input {
+		return True
+	}
+
+	return False
 }
 
 func (vm *VM) push(o object.Object) error {
