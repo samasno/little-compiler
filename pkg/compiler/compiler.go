@@ -83,6 +83,26 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("unknown operator: %s", node.Operator)
 		}
 
+	case *ast.PrefixExpression:
+		switch node.Operator {
+		case `-`:
+			err := c.Compile(node.Right)
+			if err != nil {
+				return err
+			}
+
+			c.emit(code.OpMinus)
+		case `!`:
+			err := c.Compile(node.Right)
+			if err != nil {
+				return err
+			}
+
+			c.emit(code.OpBang)
+		default:
+			return fmt.Errorf("unknown prefix operator: %s", node.Operator)
+		}
+
 	case *ast.Boolean:
 		if node.Value {
 			c.emit(code.OpTrue)
