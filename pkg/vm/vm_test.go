@@ -52,6 +52,22 @@ func TestBooleanExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestConditionals(t *testing.T) {
+	tests := []vmTestCase{
+		{"if (true) { 10} ", 10},
+		{"if (true) { 10} else { 20 }", 10},
+		{"if (false) { 10} else { 20 }", 20},
+		{"if (1) { 10} ", 10},
+		{"if (1 < 2) { 10} ", 10},
+		{"if (1 < 2) { 10} else { 20 } ", 10},
+		{"if (1 > 2) { 10} else { 20 }", 20},
+		{"if (false) {1}", Null},
+		{"if (1 > 2) {1}", Null},
+	}
+
+	runVmTests(t, tests)
+}
+
 func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
 	t.Helper()
 	switch expected := expected.(type) {
@@ -65,6 +81,10 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		err := testBooleanObject(expected, actual)
 		if err != nil {
 			t.Errorf("testBooleanObject failed: %s", err.Error())
+		}
+	case *object.Null:
+		if actual != Null {
+			t.Errorf("testBooleanObject failed: expected Null got %T (%+v)", actual, actual)
 		}
 	}
 }
