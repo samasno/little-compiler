@@ -154,7 +154,7 @@ func TestConditionals(t *testing.T) {
 				code.Make(code.OpTrue),
 				code.Make(code.OpJumpNotTruthy, 10),
 				code.Make(code.OpConstant, 0),
-				code.Make(code.OpJump),
+				code.Make(code.OpJump, 11),
 				code.Make(code.OpNull),
 				code.Make(code.OpPop),
 				code.Make(code.OpConstant, 1),

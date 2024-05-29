@@ -47,6 +47,7 @@ func TestBooleanExpressions(t *testing.T) {
 		{"!(1 < 3)", false},
 		{"!!true", true},
 		{"!5", false},
+    {"!(if(false){ 5;})", true},
 	}
 
 	runVmTests(t, tests)
@@ -63,7 +64,9 @@ func TestConditionals(t *testing.T) {
 		{"if (1 > 2) { 10} else { 20 }", 20},
 		{"if (false) {1}", Null},
 		{"if (1 > 2) {1}", Null},
-	}
+	  {"if((if(true){10})) {10} else {20}", 10},
+    {"if((if(false){10})) {10} else {20}", 20},
+  }
 
 	runVmTests(t, tests)
 }
@@ -135,7 +138,7 @@ func testIntegerObject(expected int64, actual object.Object) error {
 	}
 
 	if result.Value != expected {
-		return fmt.Errorf("object has wrong value. want %d got %d", result.Value, expected)
+		return fmt.Errorf("object has wrong value. want %d got %d", expected, result.Value)
 	}
 
 	return nil
