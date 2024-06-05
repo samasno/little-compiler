@@ -26,10 +26,11 @@ const (
 	OpJumpNotTruthy
 	OpJump
 	OpNull
-  OpSetGlobal
-  OpGetGlobal
+	OpSetGlobal
+	OpGetGlobal
+	OpArray
+  OpHash
 )
-
 
 type Definition struct {
 	Name          string
@@ -53,8 +54,10 @@ var definitions = map[Opcode]*Definition{
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
 	OpNull:          {"OpNull", []int{}},
-  OpSetGlobal: {"OpSetGlobal", []int{2}},
-  OpGetGlobal: {"OpGetGlobal", []int{2}},
+	OpSetGlobal:     {"OpSetGlobal", []int{2}},
+	OpGetGlobal:     {"OpGetGlobal", []int{2}},
+	OpArray:         {"OpArray", []int{2}},
+  OpHash: {"OpHash", []int{2}},
 }
 
 func Make(op Opcode, operands ...int) []byte {
