@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
-	"github.com/samasno/little-compiler/pkg/frontend/ast"
 	"strings"
+
+	"github.com/samasno/little-compiler/pkg/code"
+	"github.com/samasno/little-compiler/pkg/frontend/ast"
 )
 
 type BuiltinFunction func(args ...Object) Object
@@ -27,6 +29,8 @@ const (
 
 	ARRAY_OBJ = "ARRAY"
 	HASH_OBJ  = "HASH"
+
+	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION_OBJECT"
 )
 
 type HashKey struct {
@@ -52,6 +56,13 @@ func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
 func (i *Integer) HashKey() HashKey {
 	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
 }
+
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
+func (cf *CompiledFunction) Inspect() string  { return fmt.Sprintf("CompiledFunction[%p]", cf) }
 
 type Boolean struct {
 	Value bool
