@@ -115,6 +115,23 @@ func TestHashLiterals(t *testing.T) {
   runVmTests(t, tests)
 }
 
+func TestIndexExpression(t *testing.T) {
+  tests := []vmTestCase {
+    { `[1,2,3][0]`, 1},
+    { `[1,2,3][2-1]`, 2},
+    { `[[1,2]][0][1]`, 2},
+    { `[][0]`, Null},
+    {`[1,2][100]`, Null},
+    {`[1][-1]`, Null},
+    {`{4:1}[4]`, 1},
+    {`{1:2, 2:3}[2]`,3},
+    { `{}[0]`, Null},
+    { `{1:3}[0]`, Null},
+  }
+
+  runVmTests(t, tests)
+}
+
 func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
 	t.Helper()
 	switch expected := expected.(type) {

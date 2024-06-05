@@ -6,6 +6,7 @@ import (
 	"github.com/samasno/little-compiler/pkg/code"
 	"github.com/samasno/little-compiler/pkg/compiler"
 	"github.com/samasno/little-compiler/pkg/frontend/object"
+	"github.com/samasno/little-compiler/pkg/object"
 )
 
 const StackSize = 2048
@@ -156,11 +157,62 @@ func (vm *VM) Run() error {
         return err
       }
 
+    case code.OpIndex:
+      index := vm.pop()
+      left := vm.pop()
+
+      err := vm.executeIndexExpression(left, index)
+      if err != nil {
+        return err
+      }
+
+
+
     }
 
 	}
 
 	return nil
+}
+
+func (vm *VM) executeIndexExpression(left, index object.Object) error {
+  switch {
+    case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+      return vm.executeArrayIndex(left, index)
+
+    case left.Type() == object.HASH_OBJ:
+      return vm.executeHashIndex(left, index)
+    default:
+      return fmt.Errorf("unsupported type for indexing: %s", left.Type())
+  }
+}
+
+func (vm *VM) executeArrayIndex(array, index object.Object) error {
+  a := array.(*object.Array)
+  i := index.(*object.Integer).Value
+
+  max := int64(len(a.Elements) - 1)
+
+  if i < 0 || i > max {
+    return vm.push(Null)
+  }
+
+  return vm.push(a.Elements[i])
+}
+
+func (vm *VM) executeHashIndex(hash, index object.Object) error {
+  h := hash.(*object.Hash)
+  key, ok := index.(object.Hashable)
+  if !ok {
+    return fmt.Errorf("unusable hash key: %s", index.Type())
+  }
+
+  pair, ok := h.Pairs[key.HashKey()]
+  if !ok {
+    return vm.push(Null)
+  }
+
+  return vm.push(pair.Value)
 }
 
 func (vm *VM) buildHash(start, end int) (object.Object, error ) {
