@@ -20,9 +20,22 @@ type Compiler struct {
 	lastInstruction     EmittedInstruction
 	previousInstruction EmittedInstruction
 	symbolTable         *SymbolTable
+  scopes []CompilationScope
+  scopeIndex int
+}
+
+type CompilationScope struct {
+  instructions code.Instructions
+  lastInstruction EmittedInstruction
+  previousInstruction EmittedInstruction
 }
 
 func New() *Compiler {
+  mainScope := CompilationScope{
+    instructions: code.Instructions{},
+    lastInstruction: EmittedInstruction{},
+    previousInstruction: EmittedInstruction{},
+  }
 	return &Compiler{
 		instructions:        code.Instructions{},
 		constants:           []object.Object{},

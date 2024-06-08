@@ -6,7 +6,6 @@ import (
 	"github.com/samasno/little-compiler/pkg/code"
 	"github.com/samasno/little-compiler/pkg/compiler"
 	"github.com/samasno/little-compiler/pkg/frontend/object"
-	"github.com/samasno/little-compiler/pkg/object"
 )
 
 const StackSize = 2048
