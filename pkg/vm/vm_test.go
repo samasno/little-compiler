@@ -47,7 +47,7 @@ func TestBooleanExpressions(t *testing.T) {
 		{"!(1 < 3)", false},
 		{"!!true", true},
 		{"!5", false},
-    {"!(if(false){ 5;})", true},
+		{"!(if(false){ 5;})", true},
 	}
 
 	runVmTests(t, tests)
@@ -64,72 +64,107 @@ func TestConditionals(t *testing.T) {
 		{"if (1 > 2) { 10} else { 20 }", 20},
 		{"if (false) {1}", Null},
 		{"if (1 > 2) {1}", Null},
-	  {"if((if(true){10})) {10} else {20}", 10},
-    {"if((if(false){10})) {10} else {20}", 20},
-  }
+		{"if((if(true){10})) {10} else {20}", 10},
+		{"if((if(false){10})) {10} else {20}", 20},
+	}
 
 	runVmTests(t, tests)
 }
 
 func TestGlobalLetStatements(t *testing.T) {
-  tests := []vmTestCase{
-    {`let one = 1; one;`, 1},
-    {`let one = 1; let two = 2; one + two`, 3},
-    {`let one = 1; let two = one + one; one + two;`, 3},
-  }
+	tests := []vmTestCase{
+		{`let one = 1; one;`, 1},
+		{`let one = 1; let two = 2; one + two`, 3},
+		{`let one = 1; let two = one + one; one + two;`, 3},
+	}
 
-  runVmTests(t, tests)
+	runVmTests(t, tests)
 }
 
 func TestStringExpression(t *testing.T) {
-  tests := []vmTestCase {
-    {`"monkey"`, "monkey"},
-    {`"test " + "works"`, "test works"},
-  }
+	tests := []vmTestCase{
+		{`"monkey"`, "monkey"},
+		{`"test " + "works"`, "test works"},
+	}
 
-  runVmTests(t, tests)
+	runVmTests(t, tests)
 }
 
 func TestArrayLiterals(t *testing.T) {
-  tests := []vmTestCase {
-    {`["test""]`, []string{"test"}},
-    {`[]`, []int{}},
-    {`[1+2, 4, 5]`, []int{3,4,5}},
-  }
+	tests := []vmTestCase{
+		{`["test""]`, []string{"test"}},
+		{`[]`, []int{}},
+		{`[1+2, 4, 5]`, []int{3, 4, 5}},
+	}
 
-  runVmTests(t,tests)
+	runVmTests(t, tests)
 }
 
 func TestHashLiterals(t *testing.T) {
-  tests := []vmTestCase {
-    {`{}`, map[object.HashKey]int64{}},
-    {`{1:2, 3:4}`, map[object.HashKey]int64 {
-      (&object.Integer{Value: 1}).HashKey(): 2,
-      (&object.Integer{Value: 3}).HashKey(): 4},
-    },
-    {`{2 * 2: 10 / 2,}`, map[object.HashKey]int64 {
-      (&object.Integer{Value: 4}).HashKey(): 5},
-    }, 
-  }
+	tests := []vmTestCase{
+		{`{}`, map[object.HashKey]int64{}},
+		{`{1:2, 3:4}`, map[object.HashKey]int64{
+			(&object.Integer{Value: 1}).HashKey(): 2,
+			(&object.Integer{Value: 3}).HashKey(): 4},
+		},
+		{`{2 * 2: 10 / 2,}`, map[object.HashKey]int64{
+			(&object.Integer{Value: 4}).HashKey(): 5},
+		},
+	}
 
-  runVmTests(t, tests)
+	runVmTests(t, tests)
 }
 
 func TestIndexExpression(t *testing.T) {
-  tests := []vmTestCase {
-    { `[1,2,3][0]`, 1},
-    { `[1,2,3][2-1]`, 2},
-    { `[[1,2]][0][1]`, 2},
-    { `[][0]`, Null},
-    {`[1,2][100]`, Null},
-    {`[1][-1]`, Null},
-    {`{4:1}[4]`, 1},
-    {`{1:2, 2:3}[2]`,3},
-    { `{}[0]`, Null},
-    { `{1:3}[0]`, Null},
-  }
+	tests := []vmTestCase{
+		{`[1,2,3][0]`, 1},
+		{`[1,2,3][2-1]`, 2},
+		{`[[1,2]][0][1]`, 2},
+		{`[][0]`, Null},
+		{`[1,2][100]`, Null},
+		{`[1][-1]`, Null},
+		{`{4:1}[4]`, 1},
+		{`{1:2, 2:3}[2]`, 3},
+		{`{}[0]`, Null},
+		{`{1:3}[0]`, Null},
+	}
 
-  runVmTests(t, tests)
+	runVmTests(t, tests)
+}
+
+func TestFunctionsWithoutArguments(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `let fivePlusTen = fn(){5+10}();`, expected: 15,
+		},
+		{
+			input: `
+				let one = fn() { 1;};
+				let two = fn() {2;};
+				one() + two()
+			`,
+			expected: 3,
+		},
+		{
+			input: `
+				let a = fn() {1;};
+				let b = fn() { a() + 1 };
+				let c = fn() { return b() + 1 };
+				c();
+			`,
+			expected: 3,
+		},
+		{
+			input:    `let a = fn(){}; a()`,
+			expected: Null,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestFirstClassFunctions(t *testing.T) {
+
 }
 
 func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
@@ -140,11 +175,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		if err != nil {
 			t.Errorf("testIntegerObject failed: %s", err)
 		}
-  case string:
-    err := testStringObject(expected, actual)
-    if err != nil {
-      t.Errorf("testStringObject failed: %s", err)
-    }
+	case string:
+		err := testStringObject(expected, actual)
+		if err != nil {
+			t.Errorf("testStringObject failed: %s", err)
+		}
 	case bool:
 		err := testBooleanObject(expected, actual)
 		if err != nil {
@@ -154,45 +189,45 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		if actual != Null {
 			t.Errorf("testBooleanObject failed: expected Null got %T (%+v)", actual, actual)
 		}
-  case []int:
-    actual, ok := actual.(*object.Array)
-    if !ok {
-      t.Errorf("testArrayObject failed: not array got %T (+%v)", actual, actual)
-    }
+	case []int:
+		actual, ok := actual.(*object.Array)
+		if !ok {
+			t.Errorf("testArrayObject failed: not array got %T (+%v)", actual, actual)
+		}
 
-    if len(expected) != len(actual.Elements) {
-      t.Errorf("wrong length of array: want %d got %d", len(expected), len(actual.Elements))
-    }
+		if len(expected) != len(actual.Elements) {
+			t.Errorf("wrong length of array: want %d got %d", len(expected), len(actual.Elements))
+		}
 
-    for i, el := range expected {
-      err := testIntegerObject(int64(el), actual.Elements[i])  
-      if err != nil {
-        t.Errorf("testIntegerObject failed: %s", err)
-      }
-    }
-  case map[object.HashKey]int64:
-    hash, ok := actual.(*object.Hash)
-    if !ok {
-      t.Errorf("object not Hash, got %T (%+v)", actual, actual)
-      return
-    }
+		for i, el := range expected {
+			err := testIntegerObject(int64(el), actual.Elements[i])
+			if err != nil {
+				t.Errorf("testIntegerObject failed: %s", err)
+			}
+		}
+	case map[object.HashKey]int64:
+		hash, ok := actual.(*object.Hash)
+		if !ok {
+			t.Errorf("object not Hash, got %T (%+v)", actual, actual)
+			return
+		}
 
-    if len(hash.Pairs) != len(expected) {
-      t.Errorf("hash has wrong number of pairs. want %d got %d", len(expected), len(hash.Pairs))
-      return
-    }
+		if len(hash.Pairs) != len(expected) {
+			t.Errorf("hash has wrong number of pairs. want %d got %d", len(expected), len(hash.Pairs))
+			return
+		}
 
-    for expectedKey, expectedValue := range expected {
-      pair, ok := hash.Pairs[expectedKey]
-      if !ok {
-        t.Errorf("hash does not contain value for key %v", expectedKey)
-      }
+		for expectedKey, expectedValue := range expected {
+			pair, ok := hash.Pairs[expectedKey]
+			if !ok {
+				t.Errorf("hash does not contain value for key %v", expectedKey)
+			}
 
-      err := testIntegerObject(expectedValue, pair.Value)
-      if err != nil {
-        t.Errorf("testIntegerObject failed: %s", err)
-      }
-    }
+			err := testIntegerObject(expectedValue, pair.Value)
+			if err != nil {
+				t.Errorf("testIntegerObject failed: %s", err)
+			}
+		}
 	}
 }
 
@@ -249,16 +284,16 @@ func testIntegerObject(expected int64, actual object.Object) error {
 }
 
 func testStringObject(expected string, actual object.Object) error {
-  result, ok := actual.(*object.String)
-  if !ok {
-    return fmt.Errorf("object is not string, got %T (%+v)", actual, actual)
-  }
+	result, ok := actual.(*object.String)
+	if !ok {
+		return fmt.Errorf("object is not string, got %T (%+v)", actual, actual)
+	}
 
-  if result.Value != expected {
-    return fmt.Errorf("object has wrong value. want %s got %s", expected, result.Value)
-  }
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value. want %s got %s", expected, result.Value)
+	}
 
-  return nil
+	return nil
 }
 
 type vmTestCase struct {
