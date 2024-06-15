@@ -178,6 +178,55 @@ func TestFirstClassFunctions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestFunctionCallWithLocalBindings(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			`let one = fn() { let one = 1; one; }();`,
+			1,
+		},
+		{
+			`let oneAndTwo = fn() { let one = 1; let two = 2; one + two; }();`,
+			3,
+		},
+		{
+			`
+			let oneAndTwo = fn() { let one = 1; let two = 2; one + two };
+			let threeAndFour = fn() { let three = 3; let four = 4; three + 4 };
+			oneAndTwo() + threeAndFour()
+			`,
+			10,
+		},
+		{
+			`
+			let firstFoobar = fn() { let foobar = 50; foobar; };
+			let secondFoobar = fn() { let foobar = 100; foobar;};
+			firstFoobar() + secondFoobar();
+			`,
+			150,
+		},
+		{
+			`
+			let globalSeed = 50;
+
+			let minusOne = fn() {
+				let num = 1;
+				globalSeed - num
+			}
+
+			let minusTwo = fn() {
+				let num = 2
+				globalSeed - num
+			}
+
+			minusOne() + minusTwo()
+			`,
+			97,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
 func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
 	t.Helper()
 	switch expected := expected.(type) {
