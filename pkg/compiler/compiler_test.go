@@ -235,7 +235,6 @@ func TestDefine(t *testing.T) {
 	expected := map[string]Symbol{
 		"a": {Name: "a", Scope: GlobalScope, Index: 0},
 		"b": {Name: "b", Scope: GlobalScope, Index: 1},
-
 	}
 
 	global := NewSymbolTable()
@@ -505,7 +504,7 @@ func TestCompilationScope(t *testing.T) {
 		t.Errorf("scope index wrong. want %d got %d", 0, compiler.scopeIndex)
 	}
 
-  globalSymbolTable := compiler.symbolTable
+	globalSymbolTable := compiler.symbolTable
 	compiler.emit(code.OpMul)
 	compiler.enterScope()
 	if compiler.scopeIndex != 1 {
@@ -522,18 +521,18 @@ func TestCompilationScope(t *testing.T) {
 		t.Errorf("last instruction wrong opcode. want %d got %d", code.OpSub, last.OpCode)
 	}
 
-  if compiler.symbolTable.Outer != globalSymbolTable {
-    t.Errorf("compiler did not enclose global table")
-  }
+	if compiler.symbolTable.Outer != globalSymbolTable {
+		t.Errorf("compiler did not enclose global table")
+	}
 
 	compiler.leaveScope()
 	if compiler.scopeIndex != 0 {
 		t.Errorf("scope index wrong. want %d got %d", 0, compiler.scopeIndex)
 	}
 
-  if compiler.symbolTable != globalSymbolTable {
-    t.Errorf("compiler did not restore global table")
-  }
+	if compiler.symbolTable != globalSymbolTable {
+		t.Errorf("compiler did not restore global table")
+	}
 
 	compiler.emit(code.OpAdd)
 	if len(compiler.scopes[compiler.scopeIndex].instructions) != 2 {
@@ -564,7 +563,7 @@ func TestFunctionCalls(t *testing.T) {
 			},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 1),
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
 				code.Make(code.OpPop),
 			},
 		},
@@ -584,7 +583,55 @@ func TestFunctionCalls(t *testing.T) {
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpSetGlobal, 0),
 				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			let oneArg = fn(a) { a; };
+			oneArg(24)
+			`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpReturnValue),
+				},
+				24,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			let manyArg = fn(a,b,c) {a; b; c;};
+			manyArg(24,25,26)
+			`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpPop),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpPop),
+					code.Make(code.OpGetLocal, 2),
+					code.Make(code.OpReturnValue),
+				},
+				24, 25, 26,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpCall, 3),
 				code.Make(code.OpPop),
 			},
 		},
@@ -594,121 +641,121 @@ func TestFunctionCalls(t *testing.T) {
 }
 
 func TestLetStatementScopes(t *testing.T) {
-  tests := []compilerTestCase {
-    {
-      input: `
+	tests := []compilerTestCase{
+		{
+			input: `
         let num = 55
         fn() {num;}
       `,
-      expectedConstants: []interface{}{
-        55,
-        []code.Instructions {
-          code.Make(code.OpGetGlobal),
-          code.Make(code.OpReturnValue),
-        },
-      },
-      expectedInstructions: []code.Instructions {
-        code.Make(code.OpConstant, 0),
-        code.Make(code.OpSetGlobal, 0),
-        code.Make(code.OpConstant, 1),
-        code.Make(code.OpPop),
-      },
-    },
-    {
-      input: `
+			expectedConstants: []interface{}{
+				55,
+				[]code.Instructions{
+					code.Make(code.OpGetGlobal),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
         fn() {
           let a = 55;
           let b = 100;
           a + b;
         }
       `,
-      expectedConstants: []interface{}{
-        55,
-        100,
-        []code.Instructions {
-          code.Make(code.OpConstant, 0),
-          code.Make(code.OpSetLocal, 0),
-          code.Make(code.OpConstant, 1),
-          code.Make(code.OpSetLocal, 1),
-          code.Make(code.OpGetLocal, 0),
-          code.Make(code.OpGetLocal, 1),
-          code.Make(code.OpAdd),
-          code.Make(code.OpReturnValue),
-        },
-      },
-      expectedInstructions: []code.Instructions {
-        code.Make(code.OpConstant, 2),
-        code.Make(code.OpPop),
-      },
-    },
-  }
+			expectedConstants: []interface{}{
+				55,
+				100,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpSetLocal, 1),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+	}
 
-  runCompilerTests(t, tests)
+	runCompilerTests(t, tests)
 }
 
 func TestResolveLocal(t *testing.T) {
-  global := NewSymbolTable()
-  global.Define("a")
-  global.Define("b")
-  local := NewEnclosedSymbolTable(global)
-  local.Define("c")
-  local.Define("d")
+	global := NewSymbolTable()
+	global.Define("a")
+	global.Define("b")
+	local := NewEnclosedSymbolTable(global)
+	local.Define("c")
+	local.Define("d")
 
-  expected := []Symbol {
-    Symbol{Name: "a", Scope: GlobalScope, Index: 0},
-    Symbol{Name: "b", Scope: GlobalScope, Index: 1},
-    Symbol{Name: "c", Scope: LocalScope, Index: 0},
-    Symbol{Name: "d", Scope: LocalScope, Index: 1},
-  }
+	expected := []Symbol{
+		Symbol{Name: "a", Scope: GlobalScope, Index: 0},
+		Symbol{Name: "b", Scope: GlobalScope, Index: 1},
+		Symbol{Name: "c", Scope: LocalScope, Index: 0},
+		Symbol{Name: "d", Scope: LocalScope, Index: 1},
+	}
 
-  for _, sym := range expected {
-    result, ok := local.Resolve(sym.Name)
-    if !ok {
-      t.Errorf("could not resolve name '%s'",sym.Name)
-      continue
-    }
-    
-    if result != sym {
-      t.Errorf("%s wanted %+v got %+v", sym.Name, sym, result)
-    }
+	for _, sym := range expected {
+		result, ok := local.Resolve(sym.Name)
+		if !ok {
+			t.Errorf("could not resolve name '%s'", sym.Name)
+			continue
+		}
 
-  }
+		if result != sym {
+			t.Errorf("%s wanted %+v got %+v", sym.Name, sym, result)
+		}
+
+	}
 }
 
 func TestResolveLocalNested(t *testing.T) {
-  global := NewSymbolTable()
-  global.Define("a")
-  global.Define("b")
+	global := NewSymbolTable()
+	global.Define("a")
+	global.Define("b")
 
-  firstLocal := NewEnclosedSymbolTable(global)
-  firstLocal.Define("c")
-  firstLocal.Define("d")
+	firstLocal := NewEnclosedSymbolTable(global)
+	firstLocal.Define("c")
+	firstLocal.Define("d")
 
-  secondLocal := NewEnclosedSymbolTable(firstLocal)
-  secondLocal.Define("e")
-  secondLocal.Define("f")
+	secondLocal := NewEnclosedSymbolTable(firstLocal)
+	secondLocal.Define("e")
+	secondLocal.Define("f")
 
-  tests := []struct{
-    table *SymbolTable
-    expectedSymbols []Symbol
-  } {
-    {firstLocal, []Symbol{{"a", GlobalScope, 0}, {"b", GlobalScope, 1}, {"c", LocalScope, 0}, {"d", LocalScope, 1}}},
-    {secondLocal, []Symbol{{"a", GlobalScope, 0}, {"b", GlobalScope, 1}, {"e", LocalScope, 0}, {"f", LocalScope, 1}}},
-  }
+	tests := []struct {
+		table           *SymbolTable
+		expectedSymbols []Symbol
+	}{
+		{firstLocal, []Symbol{{"a", GlobalScope, 0}, {"b", GlobalScope, 1}, {"c", LocalScope, 0}, {"d", LocalScope, 1}}},
+		{secondLocal, []Symbol{{"a", GlobalScope, 0}, {"b", GlobalScope, 1}, {"e", LocalScope, 0}, {"f", LocalScope, 1}}},
+	}
 
-  for _, tt := range tests {
-    for _, sym := range tt.expectedSymbols {
-      result, ok := tt.table.Resolve(sym.Name)
-      if !ok {
-        t.Errorf("could not resolve %s", sym.Name)
-        continue
-      }
+	for _, tt := range tests {
+		for _, sym := range tt.expectedSymbols {
+			result, ok := tt.table.Resolve(sym.Name)
+			if !ok {
+				t.Errorf("could not resolve %s", sym.Name)
+				continue
+			}
 
-      if result != sym {
-        t.Errorf("%s expected %+v got %+v", sym.Name, sym, result)
-      }
-    }
-  }
+			if result != sym {
+				t.Errorf("%s expected %+v got %+v", sym.Name, sym, result)
+			}
+		}
+	}
 }
 
 func runCompilerTests(t *testing.T, tests []compilerTestCase) {

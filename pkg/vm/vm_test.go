@@ -227,6 +227,62 @@ func TestFunctionCallWithLocalBindings(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			`
+			let identity = fn(a) { a; };
+			identity(4)
+			`,
+			4,
+		},
+		{
+			`
+			let sum = fn(a,b) { a + b };
+			sum(1,2);
+			`,
+			3,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestCallingFunctionsWithWrongArguments(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			`
+			fn(){1'}(1)
+			`,
+			`wrong number of arguments: want 0 got 1`,
+		},
+		{
+			`fn(a) {a;}();`,
+			`wrong number of arguments: want 1 got 0`,
+		},
+	}
+
+	for _, tt := range tests {
+		program := parse(tt.input)
+
+		c := compiler.New()
+
+		err := c.Compile(program)
+		if err != nil {
+			t.Fatalf("compiler error: %s", err)
+		}
+
+		vm := New(c.Bytecode())
+		err = vm.Run()
+		if err == nil {
+			t.Errorf("expected vm error but got none")
+		}
+		if err.Error() != tt.expected {
+			t.Fatalf("wrong vm error: want %q got %q", tt.expected, err)
+		}
+	}
+}
+
 func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
 	t.Helper()
 	switch expected := expected.(type) {
